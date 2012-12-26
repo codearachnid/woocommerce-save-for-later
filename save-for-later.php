@@ -31,6 +31,8 @@ if ( ! class_exists( 'WooCommerce_SaveForLater' ) ) {
 			add_action( 'admin_menu', array( $this, 'admin_menu' ) );
 			add_action( 'wp_enqueue_scripts', array($this, 'maybe_enqueue_assets'));
 			add_action( 'woocommerce_before_shop_loop_item_title', array( $this, 'loop_image_overlay'), 20);
+      add_action('woocommerce_after_shop_loop_item', array($this, 'save_for_later'), 20); // link on product collections page
+      add_action('woocommerce_after_add_to_cart_button', array($this, 'save_for_later'), 20); // link on product single page
 		}
 
 		function maybe_enqueue_assets(){
@@ -94,6 +96,25 @@ if ( ! class_exists( 'WooCommerce_SaveForLater' ) ) {
 				), 'wcsvl' );
 			echo '</p></div>';
 		}
+    
+    public static function save_for_later($type = 'link'){
+      global $product;
+      switch($type){
+        case 'link':
+          ?>
+          <a class="save_for_later button product_type_<?Php echo $product->product_type ?>" data-product_id="<?php echo $product->id ?>" rel="nofollow" href=""><?php echo __('Save for Later') ?></a>
+          <?php
+          break;
+        case 'button':
+          // we do not need button, make it a link always
+          ?>
+          <button type="submit" class="button alt"><?php echo __('Save for Later') ?></button>
+          <?php
+          break;
+        default:
+          break;
+      }
+    }
 
 		/* Static Singleton Factory Method */
 		public static function instance() {
