@@ -38,6 +38,9 @@ if ( !defined( 'ABSPATH' ) )
 /**
  *  Include required class to get this show on the road
  */
+
+require_once(ABSPATH . 'wp-admin/includes/upgrade.php'); // for adding custom table
+
 require_once 'save-for-later.php';
 
 /**
@@ -59,4 +62,3 @@ function WooCommerce_SaveForLater_Load() {
 	}
 }
 add_action( 'plugins_loaded', 'WooCommerce_SaveForLater_Load', 1 ); // high priority so that it's not too late for addon overrides
-
