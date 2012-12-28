@@ -8,10 +8,56 @@ if ( !class_exists( 'SFL_Wishlist_Meta' ) ) {
 		function get() {
 
 		}
-
-		function if_exists() {
-
+    
+    function if_exists() {
+      
 		}
+    
+    function exists( $type, $user_ID ){
+      switch($type){
+        case 'anon':
+          break;
+        default:
+          // @TODO: for now, its one user, one wishlist - later interface will be built to handle multiple wishlists
+          $wishlist_count = wcsvl_count_user_posts_by_type( $user_ID );
+          break;
+      }
+      return $wishlist_count;
+    }
+    
+    
+    function manager( $dataset, $form = array() ){
+      global $user_ID;
+      
+      if ( !$product_id = absint($dataset['product_id']) ) return false;
+      
+      $anon = ( is_user_logged_in() ) ? '' : 'anon';
+      
+      $wishlist_count = SFL_Wishlist_Meta::exists($anon, $user_ID);
+      
+      if ( !$wishlist_count ){
+        // create a wishlist for current user | anon
+        $wishlist_post_id = wcsvl_add_wishlist_post();
+      } else{
+        // get the wishlists
+        $wishlists_post_ids = wcsvl_get_wishlists_by_user( $user_ID );
+        if(count ($wishlists_post_ids) ){
+          $wishlist_post_id = $wishlists_post_ids[0]; // right now dealing only in one
+        }
+      }
+      
+      // now we have wishlist post id, now we need to add meta information related to current product
+      if( count($form) ){
+        foreach($form as $key => $value){
+          // @TODO: need to add validation that there is only one entry per key|value pair per wishlist|product pair
+          $mids[] = wcsvl_add_wishlist_meta($wishlist_post_id, $product_id, $key, $value);
+        }
+      }
+            
+      return $wishlist_post_id;
+      
+      return $product_id; // @TODO: change it to the desired value. its meta 
+    }
 
 		function add( $wishlist_post_id, $product_id, $meta_key, $meta_value, $unique = false ) {
 			if ( !$meta_key || 

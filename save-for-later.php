@@ -36,7 +36,10 @@ if ( ! class_exists( 'WooCommerce_SaveForLater' ) ) {
       add_action( 'init', array( $this, 'register_post_type' ) );
       add_action( 'admin_menu', array( $this, 'admin_menu' ) );
       add_action( 'wp_enqueue_scripts', array( $this, 'maybe_enqueue_assets' ) );
-
+      
+      add_action( 'wp_ajax_into_wishlist', array($this, 'into_wishlist_genie' ) ); // authenticated users
+      add_action( 'wp_ajax_nopriv_into_wishlist', array($this, 'into_wishlist_genie' ) ); // anon users
+      
       add_action('save_post', array($this, 'save_post'), 10, 2 );
 
       add_action( 'woocommerce_before_shop_loop_item_title', array( $this, 'loop_image_overlay' ), 20 );
@@ -50,7 +53,34 @@ if ( ! class_exists( 'WooCommerce_SaveForLater' ) ) {
       if ( is_admin() && get_option( self::DOMAIN . '_db_version' ) != $this->version )
         add_action( 'init', array( 'SFL_Wishlist_Install', 'install_or_upgrade' ), 1 );
     }
-
+    
+    // callback for into_wishlist ajax calls
+    function into_wishlist_genie(){
+      // forward request to meta manager with the data and wait for its response
+      
+      if( isset($_REQUEST) ){
+        extract( $_REQUEST );
+        
+        if( isset($form) ){
+          parse_str($form, $form);
+        }
+        
+        //send the data to meta manager 
+        $response = SFL_Wishlist_Meta::manager($dataset, $form);
+        
+        $r = array('msg' => __('Valid Request:'.$response));
+      }else{
+        $r = array('msg' => __('Invalid Request'));
+      }
+      
+      // forward request to html responser with data as returned by meta manager
+      
+      // return html responser response back to the into_wishlist caller
+      echo json_encode( $r );
+      
+      die();
+    }
+    
     function register_post_type() {
       if ( post_type_exists( self::POST_TYPE ) ) return;
 
@@ -102,7 +132,49 @@ if ( ! class_exists( 'WooCommerce_SaveForLater' ) ) {
         ));
       register_post_type( self::POST_TYPE, $post_type_args );
     }
-
+    
+    function create_wishlist(){
+      global $user_ID, $current_user;
+      
+      get_currentuserinfo();
+      
+      if( is_user_logged_in() ){
+        $title = $current_user->display_name . "'s Wishlist";
+      }else{
+        $title = "Wishlist created ". date('F-d-Y:H-i-s', time());
+      }
+      
+      $post = array(
+        'post_author'    => $user_ID,
+        'post_category'  => array(0),
+        'post_status'    => 'publish',
+        'post_title'     => $title,
+        'post_type'      => WooCommerce_SaveForLater::POST_TYPE
+      );
+      
+      return wp_insert_post($post);
+    }
+    
+    function get_wishlists( $userid, $post_type = WooCommerce_SaveForLater::POST_TYPE, $limit = 1 ){
+      $wishlists_post_ids = array();
+      
+      $wishlists = new WP_Query(array(
+          'post_type' => $post_type,
+          'posts_per_page' => $limit,
+          'author' => $userid
+      ));
+      
+      while ( $wishlists->have_posts() ) {
+        $wishlists_post_ids[] = $wishlists->post->ID;
+        break; // @TODO: issues with loop, memory space exaust error
+      }
+      
+      wp_reset_query();
+      wp_reset_postdata();
+      
+      return $wishlists_post_ids;
+    }
+    
     function save_post( $post_id, $post ){
       //verify post is not a revision & is a wishlist
       if ( $post->post_status != 'auto-draft' && WooCommerce_SaveForLater::POST_TYPE == $_REQUEST['post_type'] && ! wp_is_post_revision( $post_id ) ) {
@@ -138,9 +210,20 @@ if ( ! class_exists( 'WooCommerce_SaveForLater' ) ) {
     }
 
     function maybe_enqueue_assets() {
-      wp_enqueue_style( 'wcsvl-style', $this->url . 'assets/style.css', array( 'woocommerce_frontend_styles' ), 1.0, 'screen' );
-      wp_enqueue_script( 'wcsvl-script', $this->url . 'assets/action.js', array( 'jquery' ), 1.0, true );
+      wp_enqueue_style( self::DOMAIN . '-style', $this->url . 'assets/style.css', array( 'woocommerce_frontend_styles' ), 1.0, 'screen' );
+      wp_enqueue_script( self::DOMAIN . '-script', $this->url . 'assets/action.js', array( 'jquery' ), 1.0, true );
+      
+      // using localized js namespace
+      wp_localize_script( 
+          self::DOMAIN . '-script', 
+          self::DOMAIN , array( 
+            'ajaxurl' => admin_url( 'admin-ajax.php' ), 
+            'test' => 'this test is passed'
+          ) 
+      );
+      
     }
+    
     function loop_image_overlay() {
       $overlay_image = sprintf( '<img src="%s" class="%s" alt="%s" />',
         apply_filters( 'woocommerce_save_for_later_loop_thumb_img', $this->url . 'assets/icons/folder_add.png' ),

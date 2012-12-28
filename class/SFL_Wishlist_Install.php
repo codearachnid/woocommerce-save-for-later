@@ -6,6 +6,7 @@ if ( !class_exists( 'SFL_Wishlist_Install' ) ) {
 		function __construct() {
 
 		}
+    
 		function activate() {
 			update_option( WooCommerce_SaveForLater::DOMAIN . '_installed', 1 );
 			self::do_install();
