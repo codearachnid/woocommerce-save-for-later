@@ -3,7 +3,7 @@
 /*
 Plugin Name: WooCommerce: Save For Later
 Plugin URI:
-Description: Deploy your WordPress site in its entirety to an Amazon S3 bucket. Perserve permalinks, assets and all front end functionality.
+Description: Allow your visitors/customers to add products to a personal wishlist that they may save to purchase later or share with their friends.
 Version: 1.0
 Author: Timothy Wood (@codearachnid)
 Author URI: http://www.codearachnid.com
@@ -36,12 +36,10 @@ if ( !defined( 'ABSPATH' ) )
 	die( '-1' );
 
 /**
- *  Include required class to get this show on the road
+ *  Include required files to get this show on the road
  */
-
-require_once(ABSPATH . 'wp-admin/includes/upgrade.php'); // for adding custom table
-
 require_once 'save-for-later.php';
+require_once 'template-tags.php';
 
 /**
  * Add action 'plugins_loaded' to instantiate main class.

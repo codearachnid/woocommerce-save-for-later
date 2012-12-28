@@ -14,7 +14,7 @@ if( !defined('WP_UNINSTALL_PLUGIN') ) exit();
 global $wpdb, $wp_roles;
 
 // Capabilities
-$wp_roles->remove_cap( 'administrator', 'manage_woowishlists' );
+$wp_roles->remove_cap( 'administrator', 'manage_wcsfl' );
 
 // Tables
 $wpdb->query( "DROP TABLE IF EXISTS " . $wpdb->prefix . "woowishlist_meta" );
