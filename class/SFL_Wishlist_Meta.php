@@ -5,28 +5,28 @@ if ( !class_exists( 'SFL_Wishlist_Meta' ) ) {
 
 		const TABLE_META = 'woocommerce_wishlistmeta';
 
-		function get(){
+		function get() {
 
 		}
 
-		function if_exists(){
+		function if_exists() {
 
 		}
 
-		function add( $wishlist_post_id, $product_id, $meta_key, $meta_value, $unique = false ){
+		function add( $wishlist_post_id, $product_id, $meta_key, $meta_value, $unique = false ) {
 			if ( !$meta_type || !$meta_key )
 				return false;
 
-			if ( !$wishlist_post_id = absint($wishlist_post_id) || !$product_id = absint($product_id) )
+			if ( !$wishlist_post_id = absint( $wishlist_post_id ) || !$product_id = absint( $product_id ) )
 				return false;
 
 			global $wpdb;
 
-			$table_name = 
+			$table_name =
 
-			// expected_slashed ($meta_key)
-			$meta_key = stripslashes($meta_key);
-			$meta_value = stripslashes_deep($meta_value);
+				// expected_slashed ($meta_key)
+			$meta_key = stripslashes( $meta_key );
+			$meta_value = stripslashes_deep( $meta_value );
 			$meta_value = sanitize_meta( $meta_key, $meta_value, $meta_type );
 
 			$check = apply_filters( WooCommerce_SaveForLater::DOMAIN . '_add_meta', null, $wishlist_post_id, $product_id, $meta_key, $meta_value );
@@ -36,29 +36,29 @@ if ( !class_exists( 'SFL_Wishlist_Meta' ) ) {
 
 			// TODO: Look into setting uniques
 			// if ( $unique && $wpdb->get_var( $wpdb->prepare(
-			// 	"SELECT COUNT(*) FROM $table_name WHERE meta_key = %s AND $column = %d",
-			// 	$meta_key, $object_id ) ) )
-			// 	return false;
+			//  "SELECT COUNT(*) FROM $table_name WHERE meta_key = %s AND $column = %d",
+			//  $meta_key, $object_id ) ) )
+			//  return false;
 
 			$_meta_value = $meta_value;
 			$meta_value = maybe_serialize( $meta_value );
 
 			do_action( WooCommerce_SaveForLater::DOMAIN . '_add_meta', $wishlist_post_id, $product_id, $meta_key, $_meta_value );
 
-			$result = $wpdb->insert( 
-				$wpdb->prefix . self::TABLE_META, 
-				array( 
-					'wishlist_post_id' => $wishlist_post_id, 
+			$result = $wpdb->insert(
+				$wpdb->prefix . self::TABLE_META,
+				array(
+					'wishlist_post_id' => $wishlist_post_id,
 					'product_id' => $product_id,
 					'meta_key' => $meta_key,
 					'meta_value' => $meta_value
-				), 
-				array( 
-					'%d', 
+				),
+				array(
+					'%d',
 					'%d',
 					'%s',
 					'%s'
-				) 
+				)
 			);
 
 			if ( ! $result )
@@ -75,11 +75,11 @@ if ( !class_exists( 'SFL_Wishlist_Meta' ) ) {
 			return $mid;
 		}
 
-		function update(){
+		function update() {
 
 		}
 
-		function delete(){
+		function delete() {
 
 		}
 
