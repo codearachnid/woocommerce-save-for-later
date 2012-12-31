@@ -166,7 +166,7 @@ if ( ! class_exists( 'WooCommerce_SaveForLater' ) ) {
       
       while ( $wishlists->have_posts() ) {
         $wishlists_post_ids[] = $wishlists->post->ID;
-        break; // @TODO: issues with loop, memory space exaust error
+        break; // @TODO: issues with loop, memory space exaust error so breaking it for now
       }
       
       wp_reset_query();
@@ -175,18 +175,71 @@ if ( ! class_exists( 'WooCommerce_SaveForLater' ) ) {
       return $wishlists_post_ids;
     }
     
+    function get_wishlists_anon(){
+      $wishlists_post_ids = array();
+      
+      // find is any plugin cookies are set
+      
+//      echo '<pre>';
+//        print_r($_COOKIE);
+//      echo '</pre>';
+      
+      if ( !empty($_COOKIE) ) {
+        foreach($_COOKIE as $key => $value){
+          if( strpos($key, WooCommerce_SaveForLater::DOMAIN) !== false ){
+            $wishlists_post_ids[$key] = $value; // return post id
+          }
+        }
+      }
+      
+      return $wishlists_post_ids;
+    }
+    
+    function set_cookie_anon( $post_id, $post, $remember = false ){
+      //verify post is not a revision & is a wishlist & user is not logged in
+      if ( $post->post_status != 'auto-draft' && (WooCommerce_SaveForLater::POST_TYPE == $_REQUEST['post_type'] || (isset( $_REQUEST['action'] ) && $_REQUEST['action'] == 'into_wishlist' ) ) && ! wp_is_post_revision( $post_id ) && !is_user_logged_in() ) {
+        // hook into only 'publish' events
+        if( isset($_REQUEST['publish']) || (isset( $_REQUEST['action'] ) && $_REQUEST['action'] == 'into_wishlist') ) {
+          // anon_wishlist operations
+          if( $remember ){
+            $expiration = $expire = time() + 1209600; // @TODO: add filter to specify the time period of anon_cookie
+          }else{
+            $expiration = time() + 1209600; // @TODO: add filter to specify the time period of anon_cookie
+            $expire = 0;
+          }
+          
+          $name = WooCommerce_SaveForLater::DOMAIN . '_' . $post->post_name;
+          setcookie( $name, $post_id, $expire, PLUGINS_COOKIE_PATH, COOKIE_DOMAIN);
+        }
+      }
+    }
+    
+    function save_post_anon( $post_id, $post ){
+      //verify post is not a revision & is a wishlist & user is not logged in
+      if ( $post->post_status != 'auto-draft' && (WooCommerce_SaveForLater::POST_TYPE == $_REQUEST['post_type'] || (isset( $_REQUEST['action'] ) && $_REQUEST['action'] == 'into_wishlist' ) ) && ! wp_is_post_revision( $post_id ) && !is_user_logged_in()) {
+        // hook into only 'publish' events
+        if( isset($_REQUEST['publish']) || (isset( $_REQUEST['action'] ) && $_REQUEST['action'] == 'into_wishlist') ) {
+          // anon_post operations
+          $meta_key = WooCommerce_SaveForLater::DOMAIN . '_' . $post->post_name;
+          $meta_value = $post_id;
+          update_post_meta( $post_id, $meta_key, $meta_value ); // right now only one wishlist per user
+          WooCommerce_SaveForLater::set_cookie_anon( $post_id, $post );
+        }
+      }
+    }
+    
     function save_post( $post_id, $post ){
       //verify post is not a revision & is a wishlist
-      if ( $post->post_status != 'auto-draft' && WooCommerce_SaveForLater::POST_TYPE == $_REQUEST['post_type'] && ! wp_is_post_revision( $post_id ) ) {
+      if ( $post->post_status != 'auto-draft' && (WooCommerce_SaveForLater::POST_TYPE == $_REQUEST['post_type'] || (isset( $_REQUEST['action'] ) && $_REQUEST['action'] == 'into_wishlist' ) ) && ! wp_is_post_revision( $post_id ) ) {
         // unhook this function so it doesn't loop infinitely
         remove_action('save_post', array( $this, 'save_post' ) );
-
         // hook into only 'publish' events
-        if( isset($_REQUEST['publish']) ) {
+        if( isset($_REQUEST['publish']) || (isset( $_REQUEST['action'] ) && $_REQUEST['action'] == 'into_wishlist') ) {
           // update the post and change the post_name/slug to the post_title
           wp_update_post(array('ID' => $post_id, 'post_name' => self::generate_unique_slug() ));
+          // anon_post operations
+          WooCommerce_SaveForLater::save_post_anon( $post_id, $post, true );
         }
-
         //re-hook this function
         add_action('save_post', array( $this, 'save_post' ) );
       }
