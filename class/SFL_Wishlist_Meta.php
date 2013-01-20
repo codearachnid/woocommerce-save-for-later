@@ -15,12 +15,12 @@ if ( !class_exists( 'SFL_Wishlist_Meta' ) ) {
       switch($type){
         case 'anon':
           // @TODO: for now, its one user, one wishlist - later interface will be built to handle multiple wishlists
-          $wishlist_count = wcsvl_count_anon_posts_by_type( $user_ID );
+          $wishlist_count = woocommerce_sfl_count_anon_posts_by_type( $user_ID );
 //          echo $wishlist_count;
           break;
         default:
           // @TODO: for now, its one user, one wishlist - later interface will be built to handle multiple wishlists
-          $wishlist_count = wcsvl_count_user_posts_by_type( $user_ID );
+          $wishlist_count = woocommerce_sfl_count_user_posts_by_type( $user_ID );
           break;
       }
       return $wishlist_count;
@@ -38,15 +38,15 @@ if ( !class_exists( 'SFL_Wishlist_Meta' ) ) {
       
       if ( !$wishlist_count ){
         // create a wishlist for current user | anon
-        $wishlist_post_id = wcsvl_add_wishlist_post();
+        $wishlist_post_id = woocommerce_sfl_add_wishlist_post();
       } else{
         
         if ( !is_user_logged_in() ) {
           // get the wishlists based on anon cookie
-          $wishlists_post_ids = wcsvl_get_wishlists_by_anon( $user_ID );
+          $wishlists_post_ids = woocommerce_sfl_get_wishlists_by_anon( $user_ID );
         } else {
           // get the wishlists
-          $wishlists_post_ids = wcsvl_get_wishlists_by_user( $user_ID );
+          $wishlists_post_ids = woocommerce_sfl_get_wishlists_by_user( $user_ID );
         }
         
         if(count ($wishlists_post_ids) ){
@@ -57,9 +57,9 @@ if ( !class_exists( 'SFL_Wishlist_Meta' ) ) {
       // now we have wishlist post id, now we need to add meta information related to current product
       if( count($form) && $wishlist_post_id){
         foreach($form as $key => $value){
-          $mid = wcsvl_add_wishlist_meta($wishlist_post_id, $product_id, $key, $value);
+          $mid = woocommerce_sfl_add_wishlist_meta($wishlist_post_id, $product_id, $key, $value);
           if($mid === false){
-            $mid = wcsvl_update_wishlist_meta($wishlist_post_id, $product_id, $key, $value);
+            $mid = woocommerce_sfl_update_wishlist_meta($wishlist_post_id, $product_id, $key, $value);
           }
           $mids[] = $mid;
         }

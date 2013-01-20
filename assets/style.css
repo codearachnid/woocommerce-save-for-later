@@ -1,7 +1,42 @@
 /**
  * WooCommerce: Save For Later 
+ *
  */
 
+ul.products li.product a img.wcsfl-save-for-later{
+	width:16px;
+	height:16px;
+	margin-top:-30px;
+	margin: -30px 0 0 10px;
+	visibility: hidden;
+}
+div#wcsfl_banner{
+	width:100%;
+	position: fixed;
+	bottom:0px;
+	font-size: 10px;
+}
+div#wcsfl_banner > .header{
+	padding:2px;
+	text-align: center;
+	outline: none!important;
+	width:100%;
+	font-weight: bold;
+	border-top:1px solid #bbb;
+	background: #eee;
+	color: #666;
+}
+div#wcsfl_banner > .products{
+	display:none;
+	padding:10px;
+	background: #fff;
+}
+
+/**
+ * Icons
+ *
+ * @uses batch icons (https://github.com/AdamWhitcroft/Batch)
+ */
 @font-face {
 	font-family: 'batch';
 	src:url('../vendor/batch/Webfont/batch-icons-webfont.eot');
@@ -12,41 +47,7 @@
 	font-weight: normal;
 	font-style: normal;
 }
-
-ul.products li.product a img.wcsvl-save-for-later{
-	width:16px;
-	height:16px;
-	margin-top:-30px;
-	margin: -30px 0 0 10px;
-	visibility: hidden;
-}
-div#wcsfl_wishlist{
-	width:100%;
-	position: fixed;
-	bottom:0px;
-	font-size: 10px;
-}
-div#wcsfl_wishlist div#wcsfl_header > span{
-	padding:2px;
-	text-align: center;
-	outline: none!important;
-	width:100%;
-	display: block;
-	height: 10px;
-	background: orange;
-	font-family: 'batch';
-}
-div#wcsfl_wishlist div#wcsfl_products{
-	display:none;
-	padding:10px;
-	background: white;
-}
-
-/**
- * Icons
- */
-
-div#wcsfl_wishlist div#wcsfl_header > span::before{	
+div#wcsfl_banner [data-icon]:before {
 	font-family: 'batch';
 	content: attr(data-icon);
 	speak: none;
@@ -54,6 +55,4 @@ div#wcsfl_wishlist div#wcsfl_header > span::before{
 	font-weight: normal;
 	-webkit-font-smoothing: antialiased;
 	margin-right: 4px;
-	top:1px;
-	position: relative;
 }

@@ -1,38 +1,56 @@
 // WooCommerce: Save For Later
 jQuery(document).ready(function($){
-	wcsfl_wishlist = $('#wcsfl_wishlist');
-	wcsfl_products = wcsfl_wishlist.find('#wcsfl_products');
-	wcsfl_wishlist.find('#wcsfl_header > span').click(function( event ){
+	wcsfl_banner = $('#wcsfl_banner');
+	wcsfl_header = wcsfl_banner.find('.header');
+	wcsfl_products = wcsfl_banner.find('.products');
+
+	// setup styling for wishlist banner
+	if( wcsfl_settings.css_colors_enabled == 'yes' ) {
+		wcsfl_header.css({
+			'border-top-color' : wcsfl_settings.css_colors.border,
+			'background' : wcsfl_settings.css_colors.header_bg,
+			'color' : wcsfl_settings.css_colors.header_text
+		});
+		wcsfl_products.css({
+			'background' : wcsfl_settings.css_colors.background,
+			'color' : wcsfl_settings.css_colors.text
+		});
+	}
+
+	// enable the wishlist banner open events
+	wcsfl_header.click(function( event ){
 		event.preventDefault();
 		if (wcsfl_products.is( ":visible" )){
 			cssClass = 'closed';
 			icon = '&#xf148;';
-			text = wcsvl.header_show;
+			text = wcsfl_settings.header_show;
 			wcsfl_products.slideUp();
 		} else {
 			icon = '&#xf149;';
 			cssClass = 'open';
-			text = wcsvl.header_hide;
+			text = wcsfl_settings.header_hide;
 			wcsfl_products.slideDown();			 
 		}
+		// set the header display/data by visibility
 		$(this).html( text ).attr({
 			'data-icon' : $('<div/>').html( icon ).text(), // because jquery escapes ampersands
-			'class' : cssClass
+			'class' : 'header ' + cssClass
 		});
-	}).html( wcsvl.header_show );
+	}).html( wcsfl_settings.header_show );
+
 	$('.attachment-shop_catalog').hover(function(){
-		$(this).next('img.wcsvl-save-for-later').css('visibility', 'visible');
+		$(this).next('img.wcsfl-save-for-later').css('visibility', 'visible');
 	},function(){
-		$(this).next('img.wcsvl-save-for-later').css('visibility', 'hidden');
+		$(this).next('img.wcsfl-save-for-later').css('visibility', 'hidden');
 	});
-	$('img.wcsvl-save-for-later').click(function(e){
+	$('img.wcsfl-save-for-later').click(function(e){
 		e.preventDefault();
 		alert('saving');
 	});
   
  // call to wishlist genie
  $('.save_for_later').on('click', function(e){
-   console.log("TEST:" + wcsvl.test);
+   console.log("TEST:" + wcsfl_settings.test);
    // getting data- key/values for current element
    $dataset = this.dataset;
    // getting form current data
@@ -44,7 +62,7 @@ jQuery(document).ready(function($){
       form: $form
     };
     // calling the post
-    $.post(wcsvl.ajaxurl, data, function(response) {
+    $.post(wcsfl_settings.ajaxurl, data, function(response) {
       var is_json = true;
       try{
         response = $.parseJSON( response );
