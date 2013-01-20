@@ -54,4 +54,6 @@ div#wcsfl_wishlist div#wcsfl_header > span::before{
 	font-weight: normal;
 	-webkit-font-smoothing: antialiased;
 	margin-right: 4px;
+	top:1px;
+	position: relative;
 }

@@ -6,16 +6,19 @@ jQuery(document).ready(function($){
 		event.preventDefault();
 		if (wcsfl_products.is( ":visible" )){
 			cssClass = 'closed';
-			icon = '#xf148;';
+			icon = '&#xf148;';
 			text = wcsvl.header_show;
 			wcsfl_products.slideUp();
 		} else {
-			icon = '#xf149;';
+			icon = '&#xf149;';
 			cssClass = 'open';
 			text = wcsvl.header_hide;
 			wcsfl_products.slideDown();			 
 		}
-		$(this).html( text ).attr('class', cssClass ).prop( 'data-icon' , icon );
+		$(this).html( text ).attr({
+			'data-icon' : $('<div/>').html( icon ).text(), // because jquery escapes ampersands
+			'class' : cssClass
+		});
 	}).html( wcsvl.header_show );
 	$('.attachment-shop_catalog').hover(function(){
 		$(this).next('img.wcsvl-save-for-later').css('visibility', 'visible');
