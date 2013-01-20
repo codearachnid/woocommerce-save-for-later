@@ -6,3 +6,20 @@ ul.products li.product a img.wcsvl-save-for-later{
 	margin: -30px 0 0 10px;
 	visibility: hidden;
 }
+div#wcsfl_wishlist{
+	width:100%;
+	position: fixed;
+	bottom:0px;
+	font-size: 10px;
+}
+div#wcsfl_wishlist div#wcsfl_header span{
+	padding:2px;
+	text-align: center;
+	outline: none!important;
+	width:100%;
+	display: block;
+	height: 10px;
+}
+div#wcsfl_wishlist div#wcsfl_products{
+	display:none;
+}
