@@ -1,4 +1,18 @@
-/* WooCommerce: Save For Later */
+/**
+ * WooCommerce: Save For Later 
+ */
+
+@font-face {
+	font-family: 'batch';
+	src:url('../vendor/batch/Webfont/batch-icons-webfont.eot');
+	src:url('../vendor/batch/Webfont/batch-icons-webfont.eot?#iefix') format('embedded-opentype'),
+		url('../vendor/batch/Webfont/batch-icons-webfont.svg#batch_iconsregular') format('svg'),
+		url('../vendor/batch/Webfont/batch-icons-webfont.woff') format('woff'),
+		url('../vendor/batch/Webfont/batch-icons-webfont.ttf') format('truetype');
+	font-weight: normal;
+	font-style: normal;
+}
+
 ul.products li.product a img.wcsvl-save-for-later{
 	width:16px;
 	height:16px;
@@ -12,14 +26,32 @@ div#wcsfl_wishlist{
 	bottom:0px;
 	font-size: 10px;
 }
-div#wcsfl_wishlist div#wcsfl_header span{
+div#wcsfl_wishlist div#wcsfl_header > span{
 	padding:2px;
 	text-align: center;
 	outline: none!important;
 	width:100%;
 	display: block;
 	height: 10px;
+	background: orange;
+	font-family: 'batch';
 }
 div#wcsfl_wishlist div#wcsfl_products{
 	display:none;
+	padding:10px;
+	background: white;
+}
+
+/**
+ * Icons
+ */
+
+div#wcsfl_wishlist div#wcsfl_header > span::before{	
+	font-family: 'batch';
+	content: attr(data-icon);
+	speak: none;
+	font-style: normal;
+	font-weight: normal;
+	-webkit-font-smoothing: antialiased;
+	margin-right: 4px;
 }

@@ -6,9 +6,7 @@ if ( !defined( 'ABSPATH' ) )
 ?>
 <div id="wcsfl_wishlist" style="bottom: 0px;">
 	<div id="wcsfl_header">
-		<span class="closed">
-			<i></i>
-			<span></span>
+		<span class="closed" data-icon="&#xf148;">
 		</span>
 	</div>
 	<div id="wcsfl_products">
