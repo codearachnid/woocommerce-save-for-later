@@ -25,11 +25,22 @@ div#wcsfl_banner > .header{
 	border-top:1px solid #bbb;
 	background: #eee;
 	color: #666;
+	display:none;
 }
 div#wcsfl_banner > .products{
 	display:none;
 	padding:10px;
 	background: #fff;
+}
+div#wcsfl_banner > .products .wrapper{
+	width:100%;
+	margin:0 auto;
+}
+div#wcsfl_banner > .products .banner-meta{
+	display: inline-block;
+}
+div#wcsfl_banner > .products .banner-items{
+	display: inline-block;
 }
 
 /**

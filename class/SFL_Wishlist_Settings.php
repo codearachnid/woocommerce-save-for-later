@@ -10,19 +10,20 @@ if ( !defined( 'ABSPATH' ) )
  */
 class SFL_Wishlist_Settings extends WC_Settings_API {
 
-	private $defaults;
+	private $default;
 	protected static $instance;
 
 	const PREFIX = 'woocommerce_wcsfl_';
 
 	function __construct() {
 
-		$this->defaults['css_colors_enabled'] = 'yes';
+		$this->default['css_colors_enabled'] = 'yes';
 
 		// color defaults
-		$this->defaults[ 'css_colors'] = array(
+		$this->default[ 'css_colors'] = array(
 			'border' => '#bbbbbb',
 			'header_bg' => '#eeeeee',
+			'header_bg_notify' => '#e6db55',
 			'header_text' => '#666666',
 			'background' => '#ffffff',
 			'text' => '#777777'
@@ -35,7 +36,7 @@ class SFL_Wishlist_Settings extends WC_Settings_API {
 		$this->default['frontend_label'] = __('Saved Items');
 
 		// limit the amount of products someone can add to their wishlist
-		$this->defaults[ 'limit_add_amount' ] = apply_filters( WooCommerce_SaveForLater::DOMAIN . '_setting_default_limit_add_amount', 20 );
+		$this->default[ 'limit_add_amount' ] = apply_filters( 'woocommerce_sfl_setting_default_limit_add_amount', 20 );
 
 		add_action( 'woocommerce_general_settings', array( $this, 'add_general_fields' ) );
 		add_action( 'woocommerce_admin_field_woocommerce_sfl_styles', array( $this, 'style_picker' ) );
@@ -65,6 +66,7 @@ class SFL_Wishlist_Settings extends WC_Settings_API {
 		$new_colors = array(
 			'border'  => ! empty( $_POST['woocommerce_wcsfl_css_border'] ) ? woocommerce_format_hex( $_POST['woocommerce_wcsfl_css_border'] ) : '',
 			'header_bg' => ! empty( $_POST['woocommerce_wcsfl_css_header_bg'] ) ? woocommerce_format_hex( $_POST['woocommerce_wcsfl_css_header_bg'] ) : '',
+			'header_bg_notify' => ! empty( $_POST['woocommerce_wcsfl_css_header_bg_notify'] ) ? woocommerce_format_hex( $_POST['woocommerce_wcsfl_css_header_bg_notify'] ) : '',
 			'header_text' => ! empty( $_POST['woocommerce_wcsfl_css_header_text'] ) ? woocommerce_format_hex( $_POST['woocommerce_wcsfl_css_header_text'] ) : '',
 			'background' => ! empty( $_POST['woocommerce_wcsfl_css_bg'] ) ? woocommerce_format_hex( $_POST['woocommerce_wcsfl_css_bg'] ) : '',
 			'text' => ! empty( $_POST['woocommerce_wcsfl_css_text'] ) ? woocommerce_format_hex( $_POST['woocommerce_wcsfl_css_text'] ) : ''
@@ -114,7 +116,7 @@ class SFL_Wishlist_Settings extends WC_Settings_API {
 	function style_picker() {
 
 		// Get settings & defaults
-		$colors = wp_parse_args( (array) get_option( 'woocommerce_wcsfl_css_colors' ), $this->defaults['css_colors'] );
+		$colors = wp_parse_args( (array) get_option( 'woocommerce_wcsfl_css_colors' ), $this->default['css_colors'] );
 
 		?><tr valign="top" class="woocommerce_css_colors">
 		<th scope="row" class="titledesc">
@@ -125,6 +127,7 @@ class SFL_Wishlist_Settings extends WC_Settings_API {
 		// Show inputs
 		woocommerce_frontend_css_color_picker( __( 'Borders', 'woocommerce_sfl' ), 'woocommerce_wcsfl_css_border', $colors['border'], __( 'The border between the clickable header and the rest of the page, and border around product images', 'woocommerce_sfl' ) );
 		woocommerce_frontend_css_color_picker( __( 'Header Bg', 'woocommerce_sfl' ), 'woocommerce_wcsfl_css_header_bg', $colors['header_bg'], __( 'Clickable header background', 'woocommerce_sfl' ) );
+		woocommerce_frontend_css_color_picker( __( 'Notify Bg', 'woocommerce_sfl' ), 'woocommerce_wcsfl_css_header_bg_notify', $colors['header_bg_notify'], __( 'Header notify background', 'woocommerce_sfl' ) );
 		woocommerce_frontend_css_color_picker( __( 'Header Text', 'woocommerce_sfl' ), 'woocommerce_wcsfl_css_header_text', $colors['header_text'], __( 'Clickable header text color', 'woocommerce_sfl' ) );
 		woocommerce_frontend_css_color_picker( __( 'List Bg', 'woocommerce_sfl' ), 'woocommerce_wcsfl_css_bg', $colors['background'], __( 'Product list background', 'woocommerce_sfl' ) );
 		woocommerce_frontend_css_color_picker( __( 'List Text', 'woocommerce_sfl' ), 'woocommerce_wcsfl_css_text', $colors['text'], __( 'Product list text color', 'woocommerce_sfl' ) );

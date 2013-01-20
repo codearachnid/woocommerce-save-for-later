@@ -14,7 +14,6 @@ if ( ! class_exists( 'WooCommerce_SaveForLater' ) ) {
 		public $version = '1.0';
 
 		const PLUGIN_NAME = 'WooCommerce: Save For Later';
-		const DOMAIN = 'woocommerce_sfl';
 		const MIN_WC_VERSION = '1.6.5';
 		const MIN_WP_VERSION = '3.4';
 		const MIN_PHP_VERSION = '5.3';
@@ -35,7 +34,7 @@ if ( ! class_exists( 'WooCommerce_SaveForLater' ) ) {
 			$this->path = self::get_plugin_path();
 			$this->dir = trailingslashit( basename( $this->path ) );
 			$this->url = plugins_url() . '/' . $this->dir;
-			$this->base_slug = apply_filters( self::DOMAIN . '_base_slug', 'wishlist' );
+			$this->base_slug = apply_filters( 'woocommerce_sfl_base_slug', 'wishlist' );
 
 			add_action( 'init', array( $this, 'register_post_type' ) );
 			add_action( 'admin_menu', array( $this, 'admin_menu' ) );
@@ -55,7 +54,7 @@ if ( ! class_exists( 'WooCommerce_SaveForLater' ) ) {
 		function check_install() {
 			register_activation_hook( __FILE__, array( 'SFL_Wishlist_Install', 'activate' ) );
 			register_activation_hook( __FILE__, array( 'SFL_Wishlist_Install', 'flush_rewrite_rules' ) );
-			if ( is_admin() && get_option( self::DOMAIN . '_db_version' ) != $this->version )
+			if ( is_admin() && get_option( 'woocommerce_sfl_db_version' ) != $this->version )
 				add_action( 'init', array( 'SFL_Wishlist_Install', 'install_or_upgrade' ), 1 );
 		}
 
@@ -89,9 +88,9 @@ if ( ! class_exists( 'WooCommerce_SaveForLater' ) ) {
 		function register_post_type() {
 			if ( post_type_exists( self::POST_TYPE ) ) return;
 
-			$cap = self::DOMAIN . '_manage';
+			$cap = 'woocommerce_sfl_manage';
 
-			$post_type_args = apply_filters( self::DOMAIN . '_post_type_args', array(
+			$post_type_args = apply_filters( 'woocommerce_sfl_post_type_args', array(
 					'labels' => array(
 						'name'      => __( 'WooWishLists', 'woocommerce_sfl' ),
 						'singular_name'   => __( 'WooWishList', 'woocommerce_sfl' ),
@@ -191,7 +190,7 @@ if ( ! class_exists( 'WooCommerce_SaveForLater' ) ) {
 
 			if ( !empty( $_COOKIE ) ) {
 				foreach ( $_COOKIE as $key => $value ) {
-					if ( strpos( $key, WooCommerce_SaveForLater::DOMAIN ) !== false ) {
+					if ( strpos( $key, 'woocommerce_sfl' ) !== false ) {
 						$wishlists_post_ids[$key] = $value; // return post id
 					}
 				}
@@ -213,7 +212,7 @@ if ( ! class_exists( 'WooCommerce_SaveForLater' ) ) {
 						$expire = 0;
 					}
 
-					$name = WooCommerce_SaveForLater::DOMAIN . '_' . $post->post_name;
+					$name = 'woocommerce_sfl_' . $post->post_name;
 					setcookie( $name, $post_id, $expire, PLUGINS_COOKIE_PATH, COOKIE_DOMAIN );
 				}
 			}
@@ -225,7 +224,7 @@ if ( ! class_exists( 'WooCommerce_SaveForLater' ) ) {
 				// hook into only 'publish' events
 				if ( isset( $_REQUEST['publish'] ) || ( isset( $_REQUEST['action'] ) && $_REQUEST['action'] == 'into_wishlist' ) ) {
 					// anon_post operations
-					$meta_key = WooCommerce_SaveForLater::DOMAIN . '_' . $post->post_name;
+					$meta_key = 'woocommerce_sfl_' . $post->post_name;
 					$meta_value = $post_id;
 					update_post_meta( $post_id, $meta_key, $meta_value ); // right now only one wishlist per user
 					WooCommerce_SaveForLater::set_cookie_anon( $post_id, $post );
@@ -252,8 +251,8 @@ if ( ! class_exists( 'WooCommerce_SaveForLater' ) ) {
 
 		function generate_unique_slug() {
 			global $wpdb;
-			$allowed_chars = apply_filters( self::DOMAIN . '_unique_slug_allowed_chars', '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ' );
-			$url_length = get_option( self::DOMAIN . '_unique_url_length', 6 );
+			$allowed_chars = apply_filters( 'woocommerce_sfl_unique_slug_allowed_chars', '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ' );
+			$url_length = get_option( 'woocommerce_sfl_unique_url_length', 6 );
 			$unique_slug = '';
 			for ( $i=0; $i<$url_length; $i++ ) {
 				$unique_slug .= substr( $allowed_chars, rand( 0, strlen( $allowed_chars ) ), 1 );
@@ -268,12 +267,12 @@ if ( ! class_exists( 'WooCommerce_SaveForLater' ) ) {
 		}
 
 		function maybe_enqueue_assets() {
-			wp_enqueue_style( self::DOMAIN . '-style', $this->url . 'assets/style.css', array( 'woocommerce_frontend_styles' ), 1.0, 'screen' );
-			wp_enqueue_script( self::DOMAIN . '-script', $this->url . 'assets/action.js', array( 'jquery' ), 1.0, true );
+			wp_enqueue_style( 'woocommerce_sfl_style', $this->url . 'assets/style.css', array( 'woocommerce_frontend_styles' ), 1.0, 'screen' );
+			wp_enqueue_script( 'woocommerce_sfl_script', $this->url . 'assets/action.js', array( 'jquery' ), 1.0, true );
 
 			// using localized js namespace
 			wp_localize_script(
-				self::DOMAIN . '-script',
+				'woocommerce_sfl_script',
 				'wcsfl_settings' , array(
 					'ajaxurl' => admin_url( 'admin-ajax.php' ),
 					'test' => 'this test is passed',
@@ -302,7 +301,7 @@ if ( ! class_exists( 'WooCommerce_SaveForLater' ) ) {
 		function loop_image_overlay() {
 			$overlay_image = sprintf( '<img src="%s" class="%s" alt="%s" />',
 				apply_filters( 'woocommerce_save_for_later_loop_thumb_img', $this->url . 'assets/icons/folder_add.png' ),
-				apply_filters( 'woocommerce_save_for_later_loop_thumb_class', self::DOMAIN . '-save-for-later' ),
+				apply_filters( 'woocommerce_save_for_later_loop_thumb_class', 'wcsfl_product_image' ),
 				__( 'Save For Later', 'woocommerce_sfl' )
 			);
 			echo apply_filters( 'woocommerce_save_for_later_loop_thumb', $overlay_image );
@@ -318,10 +317,6 @@ if ( ! class_exists( 'WooCommerce_SaveForLater' ) ) {
 
 		public static function get_plugin_path() {
 			return trailingslashit( dirname( __FILE__ ) );
-		}
-
-		public function admin_menu() {
-			// add_menu_page( self::PLUGIN_NAME, self::PLUGIN_NAME, 'manage_options', self::DOMAIN, array( 'DeployS3Hosted_Admin', 'dashboard' ), $this->url . 'assets/icon.png', 100 );
 		}
 
 		/**

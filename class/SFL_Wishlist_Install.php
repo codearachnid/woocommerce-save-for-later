@@ -8,7 +8,7 @@ if ( !class_exists( 'SFL_Wishlist_Install' ) ) {
 		}
     
 		function activate() {
-			update_option( WooCommerce_SaveForLater::DOMAIN . '_installed', 1 );
+			update_option( 'woocommerce_sfl_installed', 1 );
 			self::do_install();
 		}
 
@@ -20,8 +20,8 @@ if ( !class_exists( 'SFL_Wishlist_Install' ) ) {
 			SFL_Wishlist_Meta::create_tables();
 			self::init_user_roles();
 			// Update version
-			update_option( WooCommerce_SaveForLater::DOMAIN . '_db_version', WooCommerce_SaveForLater::instance()->version );
-			update_option( WooCommerce_SaveForLater::DOMAIN . '_unique_url_length', 6 );
+			update_option( 'woocommerce_sfl_db_version', WooCommerce_SaveForLater::instance()->version );
+			update_option( 'woocommerce_sfl_unique_url_length', 6 );
 			flush_rewrite_rules();
 		}
 
@@ -32,7 +32,7 @@ if ( !class_exists( 'SFL_Wishlist_Install' ) ) {
 
 				if ( is_object( $wp_roles ) ) {
 					// capabilities for admin
-					$wp_roles->add_cap( 'administrator', WooCommerce_SaveForLater::DOMAIN . '_manage' );
+					$wp_roles->add_cap( 'administrator', 'woocommerce_sfl_manage' );
 				}
 		}
 	}

@@ -4,6 +4,9 @@ jQuery(document).ready(function($){
 	wcsfl_header = wcsfl_banner.find('.header');
 	wcsfl_products = wcsfl_banner.find('.products');
 
+	// animate the header showing
+	wcsfl_header.delay(1000).slideDown();
+
 	// setup styling for wishlist banner
 	if( wcsfl_settings.css_colors_enabled == 'yes' ) {
 		wcsfl_header.css({
