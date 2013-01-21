@@ -17,7 +17,7 @@ if ( ! class_exists( 'WooCommerce_SaveForLater' ) ) {
 		const MIN_WC_VERSION = '1.6.5';
 		const MIN_WP_VERSION = '3.4';
 		const MIN_PHP_VERSION = '5.3';
-		const POST_TYPE = 'woocommerce_sfl_wishlist';
+		const POST_TYPE = 'woocommerce_wishlist';
 
 		function __construct() {
 
@@ -36,16 +36,22 @@ if ( ! class_exists( 'WooCommerce_SaveForLater' ) ) {
 			$this->url = plugins_url() . '/' . $this->dir;
 			$this->base_slug = apply_filters( 'woocommerce_sfl_base_slug', 'wishlist' );
 
+			// core plugin items
 			add_action( 'init', array( $this, 'register_post_type' ) );
-			add_action( 'admin_menu', array( $this, 'admin_menu' ) );
-			add_action( 'wp_enqueue_scripts', array( $this, 'maybe_enqueue_assets' ) );
-			add_action( 'wp_footer', array( $this, 'wp_footer' ) );
-
-			add_action( 'wp_ajax_into_wishlist', array( $this, 'into_wishlist_genie' ) ); // authenticated users
-			add_action( 'wp_ajax_nopriv_into_wishlist', array( $this, 'into_wishlist_genie' ) ); // anon users
-
 			add_action( 'save_post', array( $this, 'save_post' ), 10, 2 );
 
+			// templating
+			add_action( 'wp_enqueue_scripts', array( $this, 'maybe_enqueue_assets' ) );
+			add_action( 'woocommerce_sfl_banner_meta', array( $this, 'banner_title'));
+			add_action( 'wp_footer', array( $this, 'wp_footer' ) );
+
+			// ajax handlers
+			add_action( 'wp_ajax_woocommerce_sfl_add_to_wishlist', array( $this, 'ajax_add_to_wishlist' ) ); // authenticated users
+			add_action( 'wp_ajax_nopriv_woocommerce_sfl_add_to_wishlist', array( $this, 'ajax_add_to_wishlist' ) ); // anon users
+			add_action( 'wp_ajax_woocommerce_sfl_remove_from_wishlist', array( $this, 'ajax_remove_from_wishlist' ) ); // authenticated users
+			add_action( 'wp_ajax_nopriv_woocommerce_sfl_remove_from_wishlist', array( $this, 'ajax_remove_from_wishlist' ) ); // anon users
+
+			// hook into woocommerce for integration
 			add_action( 'woocommerce_before_shop_loop_item_title', array( $this, 'loop_image_overlay' ), 20 );
 			add_action( 'woocommerce_after_shop_loop_item', array( $this, 'save_for_later' ), 20 ); // link on product collections page
 			add_action( 'woocommerce_after_add_to_cart_button', array( $this, 'save_for_later' ), 20 ); // link on product single page
@@ -58,37 +64,117 @@ if ( ! class_exists( 'WooCommerce_SaveForLater' ) ) {
 				add_action( 'init', array( 'SFL_Wishlist_Install', 'install_or_upgrade' ), 1 );
 		}
 
-		// callback for into_wishlist ajax calls
-		function into_wishlist_genie() {
-			// forward request to meta manager with the data and wait for its response
+		function ajax_remove_from_wishlist(){
+			global $user_ID;
 
-			if ( isset( $_REQUEST ) ) {
+			// will return anon wishlists if userid isn't known
+			// if the wishlist is provided and not a legit wishlist 
+			// then we try to get the active wishlist
+			$wishlist_id = ! empty($wishlist['wishlist_id']) && wcsfl_is_wishlist( $wishlist_id ) ? $wishlist['wishlist_id'] : wcsfl_get_active_wishlist_by_user( $user_ID );
+
+			// forward request to meta manager with the data and wait for its response
+			if ( !empty( $_REQUEST ) && !empty( $wishlist_id ) ) {
 				extract( $_REQUEST );
 
-				if ( isset( $form ) ) {
-					parse_str( $form, $form );
+				if( wcsfl_delete_wishlist_meta( $wishlist_id, $product_id ) ){
+
+					$wishlist = wcsfl_get_active_wishlist_by_user( $user_ID );
+
+					// get only the active products in a wishlist
+					$wishlist_items = wcsfl_get_wishlist_meta( $wishlist, null, 'quantity' );
+
+					// setup the wishlist not found message
+					add_action( 'woocommerce_sfl_wishlist_banner_not_found', array( 'SFL_Wishlist_Template', 'not_found' ) );
+
+					wcsfl_display_banner_items( $wishlist, $wishlist_items );
 				}
 
-				//send the data to meta manager
-				$response = SFL_Wishlist_Meta::manager( $dataset, $form );
-
-				$r = array( 'msg' => __( 'Valid Request:'.$response ) );
-			}else {
-				$r = array( 'msg' => __( 'Invalid Request' ) );
 			}
 
-			// forward request to html responser with data as returned by meta manager
+			die();
+		}
 
-			// return html responser response back to the into_wishlist caller
-			echo json_encode( $r );
+		// callback for wishlist ajax
+		function ajax_add_to_wishlist() {
+			
+			if ( !empty( $_REQUEST ) ) {
+				extract( $_REQUEST );
+
+				if ( !empty( $form ) )
+					parse_str( $form, $form );
+
+				if( !empty($wishlist) && $this->add_to_wishlist( $wishlist, $form ) ){
+
+					global $user_ID;
+					$wishlist = wcsfl_get_active_wishlist_by_user( $user_ID );
+
+					// get only the active products in a wishlist
+					$wishlist_items = wcsfl_get_wishlist_meta( $wishlist, null, 'quantity' );
+
+					// setup the wishlist not found message
+					add_action( 'woocommerce_sfl_wishlist_banner_not_found', array( 'SFL_Wishlist_Template', 'not_found' ) );
+
+					wcsfl_display_banner_items( $wishlist, $wishlist_items );
+				}
+
+			}
 
 			die();
+		}
+
+
+		function add_to_wishlist( $wishlist, $attributes = array() ) {
+			global $user_ID;
+
+			$defaults = array(
+				'quantity' => 1
+				);
+
+			if ( ! $product_id = absint( $wishlist['product_id'] ) ) 
+				return false;
+
+			// will return anon wishlists if userid isn't known
+			// if the wishlist is provided and not a legit wishlist 
+			// then we try to get the active wishlist
+			$wishlist_id = ! empty($wishlist['wishlist_id']) && wcsfl_is_wishlist( $wishlist_id ) ? $wishlist['wishlist_id'] : wcsfl_get_active_wishlist_by_user( $user_ID );
+
+			// if no wishlists are returned then let's protect
+			if ( empty( $wishlist_id ) ) {
+				
+				// create a wishlist for current user | anon
+				$wishlist_id = wcsfl_create_wishlist();
+
+			}
+
+			// set wishlist meta and defaults
+			$attributes = wp_parse_args( $attributes, $defaults );			
+			foreach( $attributes as $key => $attribute ) {
+				wcsfl_add_wishlist_meta( $wishlist_id, $product_id, $key, $attribute );	
+			}
+			
+			return true;
+		}
+
+		// anon is simple a wishlist by author id 0 whose temporary id is the set_anon_cookie key and value is current wishlist post id to co-relate the two
+		function has_wishlist( $user_ID, $type = 'anon' ) {
+			if ( $type == 'anon' ) {
+				// @TODO: for now, its one user, one wishlist - later interface will be built to handle multiple wishlists
+				$wishlist_count = wcsfl_count_anon_posts_by_type( $user_ID );
+			} else {
+				// @TODO: for now, its one user, one wishlist - later interface will be built to handle multiple wishlists
+				$wishlist_count = wcsfl_count_user_posts_by_type( $user_ID );
+			}
+			return $wishlist_count;
+		}
+
+		function get_user_capability(){
+			return 'woocommerce_sfl_manage';
 		}
 
 		function register_post_type() {
 			if ( post_type_exists( self::POST_TYPE ) ) return;
 
-			$cap = 'woocommerce_sfl_manage';
+			$capability = self::get_user_capability();
 
 			$post_type_args = apply_filters( 'woocommerce_sfl_post_type_args', array(
 					'labels' => array(
@@ -112,15 +198,15 @@ if ( ! class_exists( 'WooCommerce_SaveForLater' ) ) {
 					'show_ui'     => true,
 					'capability_type'   => 'post',
 					'capabilities' => array(
-						'publish_posts'   => $cap,
-						'edit_posts'    => $cap,
-						'edit_others_posts'  => $cap,
-						'delete_posts'    => $cap,
-						'delete_others_posts' => $cap,
-						'read_private_posts' => $cap,
-						'edit_post'    => $cap,
-						'delete_post'    => $cap,
-						'read_post'    => $cap
+						'publish_posts'   => $capability,
+						'edit_posts'    => $capability,
+						'edit_others_posts'  => $capability,
+						'delete_posts'    => $capability,
+						'delete_others_posts' => $capability,
+						'read_private_posts' => $capability,
+						'edit_post'    => $capability,
+						'delete_post'    => $capability,
+						'read_post'    => $capability
 					),
 					'publicly_queryable'  => true,
 					'exclude_from_search'  => false,
@@ -234,9 +320,10 @@ if ( ! class_exists( 'WooCommerce_SaveForLater' ) ) {
 
 		function save_post( $post_id, $post ) {
 			//verify post is not a revision & is a wishlist
-			if ( $post->post_status != 'auto-draft' && ( WooCommerce_SaveForLater::POST_TYPE == $_REQUEST['post_type'] || ( isset( $_REQUEST['action'] ) && $_REQUEST['action'] == 'into_wishlist' ) ) && ! wp_is_post_revision( $post_id ) ) {
+			if ( ! wp_is_post_revision( $post_id ) && !empty($_REQUEST['post_type']) && self::POST_TYPE == $_REQUEST['post_type'] && $post->post_status != 'auto-draft' ) {
 				// unhook this function so it doesn't loop infinitely
 				remove_action( 'save_post', array( $this, 'save_post' ) );
+
 				// hook into only 'publish' events
 				if ( isset( $_REQUEST['publish'] ) || ( isset( $_REQUEST['action'] ) && $_REQUEST['action'] == 'into_wishlist' ) ) {
 					// update the post and change the post_name/slug to the post_title
@@ -244,6 +331,7 @@ if ( ! class_exists( 'WooCommerce_SaveForLater' ) ) {
 					// anon_post operations
 					WooCommerce_SaveForLater::save_post_anon( $post_id, $post, true );
 				}
+
 				//re-hook this function
 				add_action( 'save_post', array( $this, 'save_post' ) );
 			}
@@ -251,19 +339,23 @@ if ( ! class_exists( 'WooCommerce_SaveForLater' ) ) {
 
 		function generate_unique_slug() {
 			global $wpdb;
+			
 			$allowed_chars = apply_filters( 'woocommerce_sfl_unique_slug_allowed_chars', '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ' );
-			$url_length = get_option( 'woocommerce_sfl_unique_url_length', 6 );
+			$url_length = SFL_Wishlist_Settings::get_option( 'unique_url_length' );
 			$unique_slug = '';
+			
 			for ( $i=0; $i<$url_length; $i++ ) {
 				$unique_slug .= substr( $allowed_chars, rand( 0, strlen( $allowed_chars ) ), 1 );
+			
 			}
 			// check to see if this unique slug has been used before?
 			if ( $wpdb->get_row( $wpdb->prepare( "SELECT ID FROM $wpdb->posts WHERE post_name = '%s';", $unique_slug ) ) != null ) {
+				
 				// try generating again
-				return self::generate_unique_slug();
-			} else {
-				return $unique_slug;
+				$unique_slug = self::generate_unique_slug();
 			}
+
+			return apply_filters('woocommerce_sfl_generate_unique_slug', $unique_slug);
 		}
 
 		function maybe_enqueue_assets() {
@@ -275,7 +367,6 @@ if ( ! class_exists( 'WooCommerce_SaveForLater' ) ) {
 				'woocommerce_sfl_script',
 				'wcsfl_settings' , array(
 					'ajaxurl' => admin_url( 'admin-ajax.php' ),
-					'test' => 'this test is passed',
 					'css_colors_enabled' => SFL_Wishlist_Settings::get_option('css_colors_enabled'),
 					'css_colors' => SFL_Wishlist_Settings::get_option('css_colors'),
 					'header_show' => sprintf( '%s %s',
@@ -294,14 +385,21 @@ if ( ! class_exists( 'WooCommerce_SaveForLater' ) ) {
 				( SFL_Wishlist_Settings::get_option( 'store_only' ) == 'no' || 
 				( SFL_Wishlist_Settings::get_option( 'store_only' ) == 'yes' && ( is_woocommerce() || is_cart() ) ) )
 			){
-				include $this->path . 'views/wishlist-banner.php';
+				// display the wishlist banner
+				SFL_Wishlist_Template::banner();
 			}
+		}
+
+		function banner_title(){
+			printf('<h3>%s</h3>',
+				SFL_Wishlist_Settings::get_option( 'frontend_label' )
+				);
 		}
 
 		function loop_image_overlay() {
 			$overlay_image = sprintf( '<img src="%s" class="%s" alt="%s" />',
 				apply_filters( 'woocommerce_save_for_later_loop_thumb_img', $this->url . 'assets/icons/folder_add.png' ),
-				apply_filters( 'woocommerce_save_for_later_loop_thumb_class', 'wcsfl_product_image' ),
+				apply_filters( 'woocommerce_save_for_later_loop_thumb_class', 'wcsfl_prod_add' ),
 				__( 'Save For Later', 'woocommerce_sfl' )
 			);
 			echo apply_filters( 'woocommerce_save_for_later_loop_thumb', $overlay_image );

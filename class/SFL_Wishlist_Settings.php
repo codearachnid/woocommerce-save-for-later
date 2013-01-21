@@ -29,6 +29,8 @@ class SFL_Wishlist_Settings extends WC_Settings_API {
 			'text' => '#777777'
 		);
 
+		$this->default['unique_url_length'] = 6;
+
 		$this->default['store_only'] = 'no';
 
 		$this->default['wp_footer_enabled'] = 'yes';

@@ -3,119 +3,82 @@
 if ( !class_exists( 'SFL_Wishlist_Meta' ) ) {
 	class SFL_Wishlist_Meta {
 
-		const TABLE_META = 'woocommerce_wishlistmeta';
+		const META_TABLE = 'woocommerce_sfl_meta';
+		const JOIN_KEY = 'woocommerce_sfl_product_id';
 
-		function get() {
+		function get( $wishlist_post_id, $product_id = null, $meta_key = null ) {
 
-		}
-    
-    // anon is simple a wishlist by author id 0 whose temporary id is the set_anon_cookie key and value is current wishlist post id to co-relate the two
-    
-    function has_wishlist( $type, $user_ID ){
-      switch($type){
-        case 'anon':
-          // @TODO: for now, its one user, one wishlist - later interface will be built to handle multiple wishlists
-          $wishlist_count = woocommerce_sfl_count_anon_posts_by_type( $user_ID );
-//          echo $wishlist_count;
-          break;
-        default:
-          // @TODO: for now, its one user, one wishlist - later interface will be built to handle multiple wishlists
-          $wishlist_count = woocommerce_sfl_count_user_posts_by_type( $user_ID );
-          break;
-      }
-      return $wishlist_count;
-    }
-    
-    
-    function manager( $dataset, $form = array() ){
-      global $user_ID;
-      
-      if ( !$product_id = absint($dataset['product_id']) ) return false;
-      
-      $anon = ( is_user_logged_in() ) ? '' : 'anon';
-      
-      $wishlist_count = SFL_Wishlist_Meta::has_wishlist($anon, $user_ID);
-      
-      if ( !$wishlist_count ){
-        // create a wishlist for current user | anon
-        $wishlist_post_id = woocommerce_sfl_add_wishlist_post();
-      } else{
-        
-        if ( !is_user_logged_in() ) {
-          // get the wishlists based on anon cookie
-          $wishlists_post_ids = woocommerce_sfl_get_wishlists_by_anon( $user_ID );
-        } else {
-          // get the wishlists
-          $wishlists_post_ids = woocommerce_sfl_get_wishlists_by_user( $user_ID );
-        }
-        
-        if(count ($wishlists_post_ids) ){
-          $wishlist_post_id = $wishlists_post_ids[0]; // right now dealing only in one
-        }
-      }
-      
-      // now we have wishlist post id, now we need to add meta information related to current product
-      if( count($form) && $wishlist_post_id){
-        foreach($form as $key => $value){
-          $mid = woocommerce_sfl_add_wishlist_meta($wishlist_post_id, $product_id, $key, $value);
-          if($mid === false){
-            $mid = woocommerce_sfl_update_wishlist_meta($wishlist_post_id, $product_id, $key, $value);
-          }
-          $mids[] = $mid;
-        }
-      }
-            
-      return $wishlist_post_id;
-      
-      return $product_id; // @TODO: change it to the desired value. its meta 
-    }
-    
-    function if_exists( $wishlist_post_id, $product_id, $meta_key, $meta_value, $unique = true ) {
-      
-      $wishlist_post_id = absint( $wishlist_post_id );
-      
-      if ( !$meta_key || 
-				 !$wishlist_post_id || 
-				 !$product_id = absint( $product_id ) )
-				return false;
+			$wishlist_post_id = !empty( $wishlist_post_id->ID ) ? $wishlist_post_id->ID : absint( $wishlist_post_id );
 
 			global $wpdb;
 
-			$meta_db_table = $wpdb->prefix . self::TABLE_META;
+			$meta_db_table = $wpdb->prefix . self::META_TABLE;
 
-				// expected_slashed ($meta_key)
+			$meta_key = stripslashes( $meta_key );
+
+			$AND_product_id = self::prepare_and_key_value( 'product_id', $product_id, '%d' );
+			$AND_meta_key = self::prepare_and_key_value( 'meta_key', $meta_key );
+
+			$meta = $wpdb->get_results( $wpdb->prepare(
+						"SELECT * FROM $meta_db_table 
+						WHERE wishlist_post_id = %d 
+						$AND_product_id 
+						$AND_meta_key;",
+						$wishlist_post_id ) );
+
+			return $meta;
+
+		}
+
+		function if_exists( $wishlist_post_id, $product_id = null, $meta_key = null, $meta_value = null ) {
+
+			$wishlist_post_id = !empty( $wishlist_post_id->ID ) ? absint( $wishlist_post_id->ID ) : absint( $wishlist_post_id );
+
+			global $wpdb;
+
+			$meta_db_table = $wpdb->prefix . self::META_TABLE;
+
+			// expected_slashed ($meta_key)
 			$meta_key = stripslashes( $meta_key );
 			$meta_value = stripslashes_deep( $meta_value );
 			$meta_value = sanitize_meta( $meta_key, $meta_value, WooCommerce_SaveForLater::POST_TYPE );
-      
-       if ( $unique && $wpdb->get_var( $wpdb->prepare(
-			  "SELECT COUNT(*) FROM $meta_db_table WHERE wishlist_post_id = %d AND product_id = %d AND meta_key = %s",
-			  $wishlist_post_id, $product_id, $meta_key ) ) )
-			  return true;
-      
-      return false;
+
+			$AND_product_id = self::prepare_and_key_value( 'product_id', $product_id, '%d' );
+			$AND_meta_key = self::prepare_and_key_value( 'meta_key', $meta_key );
+			$AND_meta_value = self::prepare_and_key_value( 'meta_value', $meta_value );
+
+			if ( $wpdb->get_var( $wpdb->prepare(
+						"SELECT COUNT(*) FROM $meta_db_table 
+						WHERE wishlist_post_id = %d 
+						$AND_product_id 
+						$AND_meta_key
+						$AND_meta_value;",
+						$wishlist_post_id ) ) )
+				return true;
+
+			return false;
 		}
 
 		function add( $wishlist_post_id, $product_id, $meta_key, $meta_value, $unique = true ) {
 
-      $wishlist_post_id = absint( $wishlist_post_id );
-      
-      if ( !$meta_key || 
-				 !$wishlist_post_id || 
-				 !$product_id = absint( $product_id ) )
+			$wishlist_post_id = !empty( $wishlist_post_id->ID ) ? $wishlist_post_id->ID : absint( $wishlist_post_id );
+
+			if ( !$meta_key ||
+				!$wishlist_post_id ||
+				!$product_id = absint( $product_id ) )
 				return false;
-      
+
 			global $wpdb;
 
-			$meta_db_table = $wpdb->prefix . self::TABLE_META;
+			$meta_db_table = $wpdb->prefix . self::META_TABLE;
 
-				// expected_slashed ($meta_key)
+			// expected_slashed ($meta_key)
 			$meta_key = stripslashes( $meta_key );
 			$meta_value = stripslashes_deep( $meta_value );
 			$meta_value = sanitize_meta( $meta_key, $meta_value, WooCommerce_SaveForLater::POST_TYPE );
 
 			$check = apply_filters( 'woocommerce_sfl_add_meta', null, $wishlist_post_id, $product_id, $meta_key, $meta_value );
-      
+
 			if ( null !== $check )
 				return $check;
 
@@ -124,16 +87,16 @@ if ( !class_exists( 'SFL_Wishlist_Meta' ) ) {
 			//  "SELECT COUNT(*) FROM $meta_db_table WHERE meta_key = %s AND $column = %d",
 			//  $meta_key, $object_id ) ) )
 			//  return false;
-      
-      if( SFL_Wishlist_Meta::if_exists( $wishlist_post_id, $product_id, $meta_key, $meta_value, $unique ) ){
-        return false;
-      }
-      
+
+			if ( self::if_exists( $wishlist_post_id, $product_id, $meta_key, $meta_value, $unique ) ) {
+				return false;
+			}
+
 			$_meta_value = $meta_value;
 			$meta_value = maybe_serialize( $meta_value );
 
 			do_action( 'woocommerce_sfl_add_meta', $wishlist_post_id, $product_id, $meta_key, $meta_value );
-      
+
 			$result = $wpdb->insert(
 				$meta_db_table,
 				array(
@@ -165,38 +128,38 @@ if ( !class_exists( 'SFL_Wishlist_Meta' ) ) {
 		}
 
 		function update( $wishlist_post_id, $product_id, $meta_key, $meta_value, $unique = true ) {
-      
-      $wishlist_post_id = absint( $wishlist_post_id );
-      
-			if ( !$meta_key || 
-				 !$wishlist_post_id || 
-				 !$product_id = absint( $product_id ) )
+
+			$wishlist_post_id = absint( $wishlist_post_id );
+
+			if ( !$meta_key ||
+				!$wishlist_post_id ||
+				!$product_id = absint( $product_id ) )
 				return false;
 
 			global $wpdb;
 
-			$meta_db_table = $wpdb->prefix . self::TABLE_META;
-      
-      $meta_key = stripslashes( $meta_key );
+			$meta_db_table = $wpdb->prefix . self::META_TABLE;
+
+			$meta_key = stripslashes( $meta_key );
 			$meta_value = stripslashes_deep( $meta_value );
 			$meta_value = sanitize_meta( $meta_key, $meta_value, WooCommerce_SaveForLater::POST_TYPE );
-      
-      // is there any thing to update
-      if( !SFL_Wishlist_Meta::if_exists( $wishlist_post_id, $product_id, $meta_key, $meta_value, $unique ) ){
-        return false;
-      }
-      
-      $result = $wpdb->update(
+
+			// is there any thing to update
+			if ( !SFL_Wishlist_Meta::if_exists( $wishlist_post_id, $product_id, $meta_key, $meta_value, $unique ) ) {
+				return false;
+			}
+
+			$result = $wpdb->update(
 				$meta_db_table,
 				array(
 					'meta_value' => $meta_value
 				),
-        array(
-          'wishlist_post_id' => $wishlist_post_id,
+				array(
+					'wishlist_post_id' => $wishlist_post_id,
 					'product_id' => $product_id,
-					'meta_key' => $meta_key,  
-        ),
-        array(
+					'meta_key' => $meta_key,
+				),
+				array(
 					'%s'
 				),
 				array(
@@ -208,55 +171,63 @@ if ( !class_exists( 'SFL_Wishlist_Meta' ) ) {
 
 			if ( ! $result )
 				return false;
-      
-      return $result;
+
+			return $result;
 		}
 
-		function delete( $wishlist_post_id, $product_id, $meta_key, $meta_value, $unique = true ) {
-      
-      $wishlist_post_id = absint( $wishlist_post_id );
-      
-      if ( !$meta_key || 
-				 !$wishlist_post_id || 
-				 !$product_id = absint( $product_id ) )
-				return false;
+		function delete( $wishlist_post_id, $product_id = null, $meta_key = null, $meta_value = null ) {
+
+			$wishlist_post_id = !empty( $wishlist_post_id->ID ) ? $wishlist_post_id->ID : absint( $wishlist_post_id );
+
+			// if ( !$meta_key ||
+			// 	!$wishlist_post_id ||
+			// 	!$product_id = absint( $product_id ) )
+			// 	return false;
 
 			global $wpdb;
 
-			$meta_db_table = $wpdb->prefix . self::TABLE_META;
-      
-      $meta_key = stripslashes( $meta_key );
+			$meta_db_table = $wpdb->prefix . self::META_TABLE;
+
+			$meta_key = stripslashes( $meta_key );
 			$meta_value = stripslashes_deep( $meta_value );
 			$meta_value = sanitize_meta( $meta_key, $meta_value, WooCommerce_SaveForLater::POST_TYPE );
-      
-      // is there any thing to update
-      if( !SFL_Wishlist_Meta::if_exists( $wishlist_post_id, $product_id, $meta_key, $meta_value, $unique ) ){
-        return false;
-      }
-      
-      // delete the record
-      $result = $wpdb->query( 
-        $wpdb->prepare( 
-          "DELETE FROM $meta_db_table
-           WHERE wishlist_post_id = %d
-           AND product_id = %s
-           AND meta_key = %s
-           AND meta_value = %s
-                ",
-           $wishlist_post_id, $product_id, $meta_key, $meta_key 
-        )
-      );
-      
-      if( !$result )
-        return false;
-      
-      return $result;
+
+			// is there any meta to delete
+			if ( !SFL_Wishlist_Meta::if_exists( $wishlist_post_id, $product_id, $meta_key, $meta_value ) ) {
+				return false;
+			}
+
+			$AND_product_id = self::prepare_and_key_value( 'product_id', $product_id, '%d' );
+			$AND_meta_key = self::prepare_and_key_value( 'meta_key', $meta_key );
+			$AND_meta_value = self::prepare_and_key_value( 'meta_value', $meta_value );
+
+			// delete the record
+			$result = $wpdb->query(
+				$wpdb->prepare(
+					"DELETE FROM $meta_db_table
+					WHERE wishlist_post_id = %d
+					$AND_product_id
+					$AND_meta_key
+					$AND_meta_value;",
+					$wishlist_post_id
+				)
+			);
+
+			if ( !$result )
+				return false;
+
+			return $result;
+		}
+
+		function prepare_and_key_value( $key, $value = null, $type = '%s' ){
+			global $wpdb;
+			return !empty($value) ? $wpdb->prepare("AND $key = $type", $value ) : '';
 		}
 
 		function create_tables() {
 			global $wpdb;
 
-			$table_name = $wpdb->prefix . self::TABLE_META;
+			$table_name = $wpdb->prefix . self::META_TABLE;
 			$collate = '';
 
 			if ( $wpdb->has_cap( 'collation' ) ) {

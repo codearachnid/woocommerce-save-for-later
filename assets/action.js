@@ -21,7 +21,7 @@ jQuery(document).ready(function($){
 	}
 
 	// enable the wishlist banner open events
-	wcsfl_header.click(function( event ){
+	wcsfl_header.on( "click", function( event ){
 		event.preventDefault();
 		if (wcsfl_products.is( ":visible" )){
 			cssClass = 'closed';
@@ -41,44 +41,59 @@ jQuery(document).ready(function($){
 		});
 	}).html( wcsfl_settings.header_show );
 
-	$('.attachment-shop_catalog').hover(function(){
-		$(this).next('img.wcsfl-save-for-later').css('visibility', 'visible');
-	},function(){
-		$(this).next('img.wcsfl-save-for-later').css('visibility', 'hidden');
+	// enable the wishlist banner products hover events
+	$(document).on({ 
+		mouseenter : function(){
+			// mouseenter
+			$(this).find('img.wp-post-image').css('opacity', 1);
+			$(this).find('div,span').fadeIn();
+		},
+		mouseleave : function(){
+			//mouseleave
+			$(this).find('img.wp-post-image').css('opacity', .5);
+			$(this).find('div,span').fadeOut();
+		}
+	}, '#wcsfl_banner .banner-items .product' );
+
+	// remove from wishlist
+	$(document).on( "click", '#wcsfl_banner .banner-items .product > span.remove', function( event ){
+		event.preventDefault();
+
+		var data = {
+			action: 'woocommerce_sfl_remove_from_wishlist',
+			product_id: $(this).attr('data-id'), // wishlist params
+		};
+
+		wcsfl_products.find('.banner-items').load( wcsfl_settings.ajaxurl, data );
+
 	});
-	$('img.wcsfl-save-for-later').click(function(e){
+
+	$('.attachment-shop_catalog').hover(function(){
+		$(this).next('img.wcsfl_prod_add').css('visibility', 'visible');
+	},function(){
+		$(this).next('img.wcsfl_prod_add').css('visibility', 'hidden');
+	});
+	$('img.wcsfl_prod_add').click(function( event ){
 		e.preventDefault();
 		alert('saving');
 	});
   
- // call to wishlist genie
- $('.save_for_later').on('click', function(e){
-   console.log("TEST:" + wcsfl_settings.test);
-   // getting data- key/values for current element
-   $dataset = this.dataset;
-   // getting form current data
-   $form = $(this).parent('form').serialize();
-   // setting the data to be send as post
-   var data = {
-      action: 'into_wishlist',
-      dataset: $dataset,
-      form: $form
-    };
-    // calling the post
-    $.post(wcsfl_settings.ajaxurl, data, function(response) {
-      var is_json = true;
-      try{
-        response = $.parseJSON( response );
-      }catch(err){
-        is_json = false;
-      }
-      if(is_json){
-        console.log(response.msg);
-      }else{
-        console.log("not json");
-      }
-    });
-   return false;
- });
+	// call to wishlist genie
+	$('.save_for_later').on( "click", function( event ){
+		event.preventDefault();
 
-});
+		var data = {
+			action: 'woocommerce_sfl_add_to_wishlist',
+			wishlist: this.dataset, // wishlist params
+			form: $(this).parent('form').serialize() // get form current data
+		};
+
+		wcsfl_products.find('.banner-items').load( wcsfl_settings.ajaxurl, data, function(response, status, xhr) {
+			if (status == 'success' && ! wcsfl_products.is( ":visible" ) ){
+				wcsfl_header.trigger('click');
+			}
+		});
+
+	});
+
+	});
