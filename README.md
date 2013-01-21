@@ -7,7 +7,6 @@ This plugin uses icons as webfont by [Modern Pictograms](http://www.fontsquirrel
 
 ### Settings
 
-### Filters
 
 ### TODO
 

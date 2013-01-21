@@ -394,7 +394,7 @@ if ( ! class_exists( 'WooCommerce_SaveForLater' ) ) {
 
 		public static function lazy_loader( $class_name ) {
 
-			$file = self::get_plugin_path() . 'class/' . $class_name . '.php';
+			$file = apply_filters( 'woocommerce_sfl_lazy_loader', self::get_plugin_path() . 'classes/' . $class_name . '.php', $class_name );
 
 			if ( file_exists( $file ) )
 				require_once $file;

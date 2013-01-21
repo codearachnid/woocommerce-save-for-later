@@ -71,7 +71,7 @@ if ( !function_exists( 'wcsfl_count_user_posts_by_type' ) ) {
     global $wpdb;
     $where = get_posts_by_author_sql($post_type, TRUE, $userid);
     $count = $wpdb->get_var( "SELECT COUNT(*) FROM $wpdb->posts $where" );
-    return apply_filters('get_usernumposts', $count, $userid);
+    return apply_filters('woocommerce_sfl_get_usernumposts', $count, $userid);
   }
 }
 

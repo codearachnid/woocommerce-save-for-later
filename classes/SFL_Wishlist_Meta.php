@@ -3,7 +3,7 @@
 if ( !class_exists( 'SFL_Wishlist_Meta' ) ) {
 	class SFL_Wishlist_Meta {
 
-		const META_TABLE = 'woocommerce_sfl_meta';
+		const META_TABLE = 'woocommerce_wishlistmeta';
 		const JOIN_KEY = 'woocommerce_sfl_product_id';
 
 		function get( $wishlist_post_id, $product_id = null, $meta_key = null ) {

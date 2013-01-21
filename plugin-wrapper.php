@@ -47,7 +47,7 @@ require_once 'template-tags.php';
  * @return void
  */
 function WooCommerce_SaveForLater_Load() {
-	if ( in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', get_option( 'active_plugins' ) ) ) ) {
+	if ( in_array( 'woocommerce/woocommerce.php', apply_filters( 'woocommerce_sfl_active_plugins', get_option( 'active_plugins' ) ) ) ) {
 		if ( apply_filters( 'woocommerce_sfl_rating_pre_check', class_exists( 'WooCommerce_SaveForLater' ) && WooCommerce_SaveForLater::prerequisites() ) ) {
 			add_action( 'init', array( 'WooCommerce_SaveForLater', 'instance' ), -100, 0 );
 		} else {

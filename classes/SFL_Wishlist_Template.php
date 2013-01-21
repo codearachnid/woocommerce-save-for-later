@@ -14,12 +14,17 @@ if ( !class_exists( 'SFL_Wishlist_Template' ) ) {
 			if( is_user_logged_in() ) {
 				$myaccount_page_id = get_option( 'woocommerce_myaccount_page_id' );
 				if ( $myaccount_page_id ) {
-				  printf('<a class="settings" href="%s" data-icon="(">%s</a>',
-				  	get_permalink( $myaccount_page_id ),
-				  	__('My Account', 'woocommerce_sfl')
-					);
+					printf('<a class="settings" href="%s" data-icon="(">%s</a>',
+						get_permalink( $myaccount_page_id ),
+						__('My Account', 'woocommerce_sfl')
+						);
 				}
 				
+			} else {
+				printf('<a class="create_account" href="%s" data-icon="o">%s</a>',
+					'#',
+					__('Create an Account', 'woocommerce_sfl')
+					);	
 			}
 		}
 
