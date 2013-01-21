@@ -5,7 +5,7 @@ if ( !defined( 'ABSPATH' ) )
 
 ?>
 <div id="wcsfl_banner" style="bottom: 0px;">
-	<div class="header" class="closed" data-icon="&#xf148;">
+	<div class="header" class="closed" data-icon="&#x2010;">
 	</div>
 	<div class="products">
 		<div class="wrapper">

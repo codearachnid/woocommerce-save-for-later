@@ -7,14 +7,14 @@ if ( !class_exists( 'SFL_Wishlist_Template' ) ) {
 	class SFL_Wishlist_Template {
 
 		function banner_title(){
-			printf('<h3 data-icon="&#xf049;">%s</h3>',
+			printf('<h3 data-icon="j">%s</h3>',
 				SFL_Wishlist_Settings::get_option( 'frontend_label' )
 				);
 
 			if( is_user_logged_in() ) {
 				$myaccount_page_id = get_option( 'woocommerce_myaccount_page_id' );
 				if ( $myaccount_page_id ) {
-				  printf('<a class="settings" href="%s" data-icon="&#xf04e;">%s</a>',
+				  printf('<a class="settings" href="%s" data-icon="(">%s</a>',
 				  	get_permalink( $myaccount_page_id ),
 				  	__('My Account', 'woocommerce_sfl')
 					);

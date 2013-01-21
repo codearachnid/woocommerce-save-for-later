@@ -1,3 +1,0 @@
-[submodule "vendor/batch"]
-	path = vendor/batch
-	url = git://github.com/AdamWhitcroft/Batch.git

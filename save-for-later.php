@@ -41,7 +41,7 @@ if ( ! class_exists( 'WooCommerce_SaveForLater' ) ) {
 			add_action( 'save_post', array( $this, 'save_post' ), 10, 2 );
 
 			// templating
-			add_action( 'wp_enqueue_scripts', array( $this, 'maybe_enqueue_assets' ) );
+			add_action( 'wp_enqueue_scripts', array( $this, 'maybe_enqueue_assets' ), 100 );
 			add_action( 'wp_footer', array( $this, 'wp_footer' ) );
 			add_action( 'woocommerce_sfl_banner_meta', array( 'SFL_Wishlist_Template', 'banner_title'));
 			add_action( 'woocommerce_sfl_wishlist_banner_not_found', array( 'SFL_Wishlist_Template', 'not_found' ) );
@@ -355,7 +355,7 @@ if ( ! class_exists( 'WooCommerce_SaveForLater' ) ) {
 
 		function maybe_enqueue_assets() {
 			wp_enqueue_style( 'woocommerce_sfl_style', $this->url . 'assets/style.css', array( 'woocommerce_frontend_styles' ), 1.0, 'screen' );
-			wp_enqueue_script( 'woocommerce_sfl_script', $this->url . 'assets/action.js', array( 'jquery' ), 1.0, true );
+			wp_enqueue_script( 'woocommerce_sfl_script', $this->url . 'assets/script.js', array( 'jquery' ), 1.0, true );
 
 			// using localized js namespace
 			wp_localize_script(
@@ -386,12 +386,10 @@ if ( ! class_exists( 'WooCommerce_SaveForLater' ) ) {
 		}
 
 		function loop_image_overlay() {
-			$overlay_image = sprintf( '<img src="%s" class="%s" alt="%s" />',
-				apply_filters( 'woocommerce_save_for_later_loop_thumb_img', $this->url . 'assets/icons/folder_add.png' ),
-				apply_filters( 'woocommerce_save_for_later_loop_thumb_class', 'wcsfl_prod_add' ),
+			$overlay_image = sprintf( '<i data-icon="o" class="wcsfl_prod_add">%s</i>',
 				__( 'Save For Later', 'woocommerce_sfl' )
 			);
-			echo apply_filters( 'woocommerce_save_for_later_loop_thumb', $overlay_image );
+			echo apply_filters( 'woocommerce_sfl_product_image_overlay', $overlay_image );
 		}
 
 		public static function lazy_loader( $class_name ) {

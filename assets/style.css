@@ -28,7 +28,7 @@ div#wcsfl_banner > .header{
 	color: #666;
 	display:none;
 }
-div#wcsfl_banner > .header[data-icon]:before {
+div#wcsfl_banner > .header[data-icon]:before{
 	margin-right:4px;
 }
 div#wcsfl_banner > .products{
@@ -46,8 +46,11 @@ div#wcsfl_banner > .products .banner-meta{
 	vertical-align: top;
 	margin-right: 10px;
 }
+div#wcsfl_banner > .products .banner-meta h3{
+	font-size: 20px;
+}
 div#wcsfl_banner > .products .banner-meta h3:before{
-	margin-right:4px;
+	margin-right:5px;
 }
 div#wcsfl_banner > .products .banner-meta .settings{
 	font-size: 10px;
@@ -57,7 +60,7 @@ div#wcsfl_banner > .products .banner-meta .settings{
 	margin-top:10px;
 }
 div#wcsfl_banner > .products .banner-meta .settings:before{
-	margin-right: 4px;
+	margin-right: 2px;
 }
 div#wcsfl_banner > .products .banner-items{
 	display: inline-block;
@@ -84,6 +87,9 @@ div#wcsfl_banner > .products .banner-items .product span{
 	color:black;
 	display:none;
 }
+div#wcsfl_banner > .products .banner-items .product .add_to_cart{
+	top: 26px;
+}
 div#wcsfl_banner > .products .banner-items .product div{
 	position: absolute;
 	bottom: 0px;
@@ -98,24 +104,26 @@ div#wcsfl_banner > .products .banner-items .product div{
 /**
  * Icons
  *
- * @uses batch icons (https://github.com/AdamWhitcroft/Batch)
+ * @uses Modern Pictograms (http://www.fontsquirrel.com/fonts/modern-pictograms)
  */
 @font-face {
-	font-family: 'batch';
-	src:url('../vendor/batch/Webfont/batch-icons-webfont.eot');
-	src:url('../vendor/batch/Webfont/batch-icons-webfont.eot?#iefix') format('embedded-opentype'),
-		url('../vendor/batch/Webfont/batch-icons-webfont.svg#batch_iconsregular') format('svg'),
-		url('../vendor/batch/Webfont/batch-icons-webfont.woff') format('woff'),
-		url('../vendor/batch/Webfont/batch-icons-webfont.ttf') format('truetype');
-	font-weight: normal;
-	font-style: normal;
+    font-family: 'ModernPictogramsNormal';
+    src: url('webfont/modernpics-webfont.eot');
+    src: url('webfont/modernpics-webfont.eot?#iefix') format('embedded-opentype'),
+         url('webfont/modernpics-webfont.woff') format('woff'),
+         url('webfont/modernpics-webfont.ttf') format('truetype'),
+         url('webfont/modernpics-webfont.svg#ModernPictogramsNormal') format('svg');
+    font-weight: normal;
+    font-style: normal;
 }
-div#wcsfl_banner [data-icon]:before {
-	font-family: 'batch';
+.wcsfl_prod_add[data-icon]:before,
+div#wcsfl_banner [data-icon]:before{
+	font-family: 'ModernPictogramsNormal';
 	content: attr(data-icon);
 	speak: none;
 	font-style: normal;
 	font-weight: normal;
 	-webkit-font-smoothing: antialiased;
 	text-decoration: none;
+	font-size: 150%;
 }
