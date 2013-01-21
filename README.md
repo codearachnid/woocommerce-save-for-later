@@ -3,7 +3,7 @@ WooCommerce: Save For Later
 
 A WordPress plugin for WooCommerce to add save for later (wishlist) functionality to products in your store. It will improve customer retention and return visits to your site by giving you
 
-This plugin uses icons as webfont by [Modern Pictograms](http://www.fontsquirrel.com/fonts/modern-pictograms)
+This plugin uses icons as webfont by [Modern Pictograms](http://thedesignoffice.org/project/modern-pictograms)
 
 ### Settings
 
