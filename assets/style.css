@@ -39,12 +39,29 @@ div#wcsfl_banner > .products{
 div#wcsfl_banner > .products .wrapper{
 	width:100%;
 	margin:0 auto;
+	vertical-align: top;
 }
 div#wcsfl_banner > .products .banner-meta{
 	display: inline-block;
+	vertical-align: top;
+	margin-right: 10px;
+}
+div#wcsfl_banner > .products .banner-meta h3:before{
+	margin-right:4px;
+}
+div#wcsfl_banner > .products .banner-meta .settings{
+	font-size: 10px;
+	color:#ccc;
+	text-decoration: none;
+	display: block;
+	margin-top:10px;
+}
+div#wcsfl_banner > .products .banner-meta .settings:before{
+	margin-right: 4px;
 }
 div#wcsfl_banner > .products .banner-items{
 	display: inline-block;
+	vertical-align: top;
 }
 div#wcsfl_banner > .products .banner-items .product{
 	display: inline-block;
@@ -100,4 +117,5 @@ div#wcsfl_banner [data-icon]:before {
 	font-style: normal;
 	font-weight: normal;
 	-webkit-font-smoothing: antialiased;
+	text-decoration: none;
 }
