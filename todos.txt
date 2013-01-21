@@ -1,7 +1,0 @@
-1. If a product already in the list, set appropriate link title and operations.
-2. Convert anonymous wishlist to authenticated; need to assign the author of the post (wishlist post id) in cookie to the next logged in user and walaa!!!.
-3. Above conversion to take place as soon as a user logs in. If there is any anonymous cookie of our desire, assign one to the current user.
-4. Add actions and filters to the designated locations.
-5. write cron to remove all wishlist with author id 0 and cookie expiry = current time - wishlist creation time
-6. Build front end views to list the wishlist as well as to display appropriate messages.
-7. Clean ups and finalization before final push
