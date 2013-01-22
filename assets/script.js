@@ -24,6 +24,7 @@ jQuery(document).ready(function($){
 			'background' : wcsfl_settings.css_colors.background,
 			'color' : wcsfl_settings.css_colors.text
 		});
+		wcsfl_banner.trigger('wcsfl_scripts_css');
 	}
 
 	// enable the wishlist banner open events
@@ -50,16 +51,25 @@ jQuery(document).ready(function($){
 	// enable the wishlist banner products hover events
 	$(document).on({ 
 		mouseenter : function(){
-			// mouseenter
 			$(this).find('img.wp-post-image').css('opacity', 1);
-			$(this).find('div,span').fadeIn();
+			$(this).find('span.remove').fadeIn();
+			// $(this).find('div,span').fadeIn();
 		},
 		mouseleave : function(){
-			//mouseleave
 			$(this).find('img.wp-post-image').css('opacity', .5);
-			$(this).find('div,span').fadeOut();
+			$(this).find('span.remove').fadeOut();
+			// $(this).find('div,span').fadeOut();
 		}
 	}, '#wcsfl_banner .banner-items .product' );
+
+	$(document).on({
+		mouseenter : function() {
+			$(this).find('.product_image_overlay.save_for_later').fadeIn();
+		},
+		mouseleave : function() {
+			$(this).find('.product_image_overlay.save_for_later').fadeOut();
+		}
+	},'.product > a');
 
 	// remove from wishlist
 	$(document).on( "click", '#wcsfl_banner .banner-items .product > span.remove', function( event ){

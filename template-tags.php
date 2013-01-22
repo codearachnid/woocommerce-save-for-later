@@ -145,7 +145,7 @@ function wcsfl_display_banner_items( $wishlist = null, $wishlist_items = array()
 
 			do_action( 'woocommerce_sfl_wishlist_banner_item_before', $wishlist_product->product_id, $wishlist_product );
 
-			printf('<a class="%s" href="%s">%s<span class="add_to_cart" data-icon="i" data-id="%s"></span><span class="remove" data-icon="x" data-id="%s"></span><div>%s</div></a>',
+			printf('<a class="%s" href="%s">%s<span class="add_to_cart" data-icon="i" data-id="%s"></span><span class="remove" data-icon="x" data-id="%s"></span><div class="quick_view">%s</div></a>',
 				'product',
 				get_permalink( $wishlist_product->product_id ),
 				get_the_post_thumbnail( $wishlist_product->product_id, 'shop_thumbnail' ),

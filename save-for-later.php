@@ -40,22 +40,22 @@ if ( ! class_exists( 'WooCommerce_SaveForLater' ) ) {
 			add_action( 'init', array( $this, 'register_post_type' ) );
 			add_action( 'save_post', array( $this, 'save_post' ), 10, 2 );
 
-			// templating
-			add_action( 'wp_enqueue_scripts', array( $this, 'maybe_enqueue_assets' ), 100 );
-			add_action( 'wp_footer', array( $this, 'wp_footer' ) );
-			add_action( 'woocommerce_sfl_banner_meta', array( 'SFL_Wishlist_Template', 'banner_title'));
-			add_action( 'woocommerce_sfl_wishlist_banner_not_found', array( 'SFL_Wishlist_Template', 'not_found' ) );
-
 			// ajax handlers
 			add_action( 'wp_ajax_woocommerce_sfl_add_to_wishlist', array( $this, 'ajax_add_to_wishlist' ) ); // authenticated users
 			add_action( 'wp_ajax_nopriv_woocommerce_sfl_add_to_wishlist', array( $this, 'ajax_add_to_wishlist' ) ); // anon users
 			add_action( 'wp_ajax_woocommerce_sfl_remove_from_wishlist', array( $this, 'ajax_remove_from_wishlist' ) ); // authenticated users
 			add_action( 'wp_ajax_nopriv_woocommerce_sfl_remove_from_wishlist', array( $this, 'ajax_remove_from_wishlist' ) ); // anon users
 
-			// hook into woocommerce for integration
-			add_action( 'woocommerce_before_shop_loop_item_title', array( $this, 'loop_image_overlay' ), 20 );
-			add_action( 'woocommerce_after_shop_loop_item', array( $this, 'save_for_later' ), 20 ); // link on product collections page
-			add_action( 'woocommerce_after_add_to_cart_button', array( $this, 'save_for_later' ), 20 ); // link on product single page
+			// templating
+			add_action( 'wp_enqueue_scripts', array( $this, 'maybe_enqueue_assets' ), 100 );
+			add_action( 'wp_footer', array( $this, 'wp_footer' ) );
+			add_action( 'woocommerce_sfl_banner_meta', array( 'SFL_Wishlist_Template', 'banner_title'));
+			add_action( 'woocommerce_sfl_wishlist_banner_not_found', array( 'SFL_Wishlist_Template', 'not_found' ) );
+
+			// hook into woocommerce for templating
+			add_action( 'woocommerce_before_shop_loop_item_title', array( 'SFL_Wishlist_Template', 'product_image_overlay' ), 20 );
+			add_action( 'woocommerce_after_shop_loop_item', array( 'SFL_Wishlist_Template', 'product_button' ), 20 ); // link on product collections page
+			add_action( 'woocommerce_after_add_to_cart_button', array( 'SFL_Wishlist_Template', 'product_button' ), 20 ); // link on product single page
 		}
 
 		function check_install() {
@@ -385,13 +385,6 @@ if ( ! class_exists( 'WooCommerce_SaveForLater' ) ) {
 			}
 		}
 
-		function loop_image_overlay() {
-			$overlay_image = sprintf( '<i data-icon="o" class="wcsfl_prod_add">%s</i>',
-				__( 'Save For Later', 'woocommerce_sfl' )
-			);
-			echo apply_filters( 'woocommerce_sfl_product_image_overlay', $overlay_image );
-		}
-
 		public static function lazy_loader( $class_name ) {
 
 			$file = apply_filters( 'woocommerce_sfl_lazy_loader', self::get_plugin_path() . 'classes/' . $class_name . '.php', $class_name );
@@ -435,13 +428,6 @@ if ( ! class_exists( 'WooCommerce_SaveForLater' ) ) {
 					self::PLUGIN_NAME
 				), 'woocommerce_sfl' );
 			echo '</p></div>';
-		}
-
-		public static function save_for_later() {
-			global $product;
-?>
-      <a class="save_for_later button product_type_<?php echo $product->product_type ?>" data-product_id="<?php echo $product->id ?>" rel="nofollow" href=""><?php echo __( 'Save for Later' ) ?></a>
-      <?php
 		}
 
 		/* Static Singleton Factory Method */

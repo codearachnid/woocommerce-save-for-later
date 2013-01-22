@@ -26,7 +26,8 @@ class SFL_Wishlist_Settings extends WC_Settings_API {
 			'header_bg_notify' => '#e6db55',
 			'header_text' => '#666666',
 			'background' => '#ffffff',
-			'text' => '#777777'
+			'text' => '#777777',
+			'product_icon' => '#ffffff',
 		);
 
 		$this->default['unique_url_length'] = 6;
@@ -71,7 +72,8 @@ class SFL_Wishlist_Settings extends WC_Settings_API {
 			'header_bg_notify' => ! empty( $_POST['woocommerce_wcsfl_css_header_bg_notify'] ) ? woocommerce_format_hex( $_POST['woocommerce_wcsfl_css_header_bg_notify'] ) : '',
 			'header_text' => ! empty( $_POST['woocommerce_wcsfl_css_header_text'] ) ? woocommerce_format_hex( $_POST['woocommerce_wcsfl_css_header_text'] ) : '',
 			'background' => ! empty( $_POST['woocommerce_wcsfl_css_bg'] ) ? woocommerce_format_hex( $_POST['woocommerce_wcsfl_css_bg'] ) : '',
-			'text' => ! empty( $_POST['woocommerce_wcsfl_css_text'] ) ? woocommerce_format_hex( $_POST['woocommerce_wcsfl_css_text'] ) : ''
+			'text' => ! empty( $_POST['woocommerce_wcsfl_css_text'] ) ? woocommerce_format_hex( $_POST['woocommerce_wcsfl_css_text'] ) : '',
+			'product_icon' => ! empty( $_POST['woocommerce_wcsfl_css_product_icon'] ) ? woocommerce_format_hex( $_POST['woocommerce_wcsfl_css_product_icon'] ) : ''
 		);
 
 		$old_colors = get_option( self::PREFIX . 'css_colors' );
@@ -133,6 +135,7 @@ class SFL_Wishlist_Settings extends WC_Settings_API {
 		woocommerce_frontend_css_color_picker( __( 'Header Text', 'woocommerce_sfl' ), 'woocommerce_wcsfl_css_header_text', $colors['header_text'], __( 'Clickable header text color', 'woocommerce_sfl' ) );
 		woocommerce_frontend_css_color_picker( __( 'List Bg', 'woocommerce_sfl' ), 'woocommerce_wcsfl_css_bg', $colors['background'], __( 'Product list background', 'woocommerce_sfl' ) );
 		woocommerce_frontend_css_color_picker( __( 'List Text', 'woocommerce_sfl' ), 'woocommerce_wcsfl_css_text', $colors['text'], __( 'Product list text color', 'woocommerce_sfl' ) );
+		woocommerce_frontend_css_color_picker( __( 'Icon', 'woocommerce_sfl' ), 'woocommerce_wcsfl_css_product_icon', $colors['product_icon'], __( 'The color of icons that overlay over the product images in the shop and wishlist', 'woocommerce_sfl' ) );
 
 		echo '</td></tr>';
 	}
