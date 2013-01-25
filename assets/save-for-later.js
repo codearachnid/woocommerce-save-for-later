@@ -124,6 +124,7 @@ function wcsfl_get_wishlist( data, is_open ){
 		if (is_open == true && data.status == 'success' && ! wcsfl_products.is( ":visible" ) ){
 			wcsfl_header.trigger('click');
 		}
+		wcsfl_banner.trigger('wcsfl_get_wishlist');
 	});
 }
 
@@ -140,6 +141,7 @@ function wcsfl_product_template(){
 		wishlist = wcsfl_settings.template.not_found;
 	}
 	wcsfl_products.find('.banner-items').html( wishlist );
+	wcsfl_products.trigger('wcsfl_product_template');
 }
 
 String.prototype.wcsfl_format = function() {
