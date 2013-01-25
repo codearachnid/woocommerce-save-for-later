@@ -66,12 +66,11 @@ if ( ! class_exists( 'WooCommerce_SaveForLater' ) ) {
 		}
 
 		function ajax_remove_from_wishlist(){
-			global $user_ID;
 
 			// will return anon wishlists if userid isn't known
 			// if the wishlist is provided and not a legit wishlist 
 			// then we try to get the active wishlist
-			$wishlist_id = ! empty($wishlist['wishlist_id']) && wcsfl_is_wishlist( $wishlist_id ) ? $wishlist['wishlist_id'] : wcsfl_get_active_wishlist_by_user( $user_ID );
+			$wishlist_id = ! empty($wishlist['wishlist_id']) && wcsfl_is_wishlist( $wishlist_id ) ? $wishlist['wishlist_id'] : wcsfl_get_active_wishlist_by_user();
 
 			// forward request to meta manager with the data and wait for its response
 			if ( !empty( $_REQUEST ) && !empty( $wishlist_id ) ) {
@@ -79,7 +78,7 @@ if ( ! class_exists( 'WooCommerce_SaveForLater' ) ) {
 
 				if( wcsfl_delete_wishlist_meta( $wishlist_id, $product_id ) ){
 
-					$wishlist = wcsfl_get_active_wishlist_by_user( $user_ID );
+					$wishlist = wcsfl_get_active_wishlist_by_user();
 
 					// get only the active products in a wishlist
 					$wishlist_items = wcsfl_get_wishlist_meta( $wishlist, null, 'quantity' );
@@ -103,8 +102,7 @@ if ( ! class_exists( 'WooCommerce_SaveForLater' ) ) {
 
 				if( !empty($wishlist) && $this->add_to_wishlist( $wishlist, $form ) ){
 
-					global $user_ID;
-					$wishlist = wcsfl_get_active_wishlist_by_user( $user_ID );
+					$wishlist = wcsfl_get_active_wishlist_by_user();
 
 					// get only the active products in a wishlist
 					$wishlist_items = wcsfl_get_wishlist_meta( $wishlist, null, 'quantity' );
@@ -119,7 +117,6 @@ if ( ! class_exists( 'WooCommerce_SaveForLater' ) ) {
 
 
 		function add_to_wishlist( $wishlist, $attributes = array() ) {
-			global $user_ID;
 
 			$defaults = array(
 				'quantity' => 1
@@ -131,7 +128,7 @@ if ( ! class_exists( 'WooCommerce_SaveForLater' ) ) {
 			// will return anon wishlists if userid isn't known
 			// if the wishlist is provided and not a legit wishlist 
 			// then we try to get the active wishlist
-			$wishlist_id = ! empty($wishlist['wishlist_id']) && wcsfl_is_wishlist( $wishlist_id ) ? $wishlist['wishlist_id'] : wcsfl_get_active_wishlist_by_user( $user_ID );
+			$wishlist_id = ! empty($wishlist['wishlist_id']) && wcsfl_is_wishlist( $wishlist_id ) ? $wishlist['wishlist_id'] : wcsfl_get_active_wishlist_by_user();
 
 			// if no wishlists are returned then let's protect
 			if ( empty( $wishlist_id ) ) {
@@ -203,8 +200,8 @@ if ( ! class_exists( 'WooCommerce_SaveForLater' ) ) {
 						'delete_post'    => $capability,
 						'read_post'    => $capability
 					),
-					'publicly_queryable'  => true,
-					'exclude_from_search'  => false,
+					'publicly_queryable'  => false,
+					'exclude_from_search'  => true,
 					'hierarchical'    => false,
 					'rewrite'     => array(
 						'slug' => $this->base_slug,
@@ -212,7 +209,7 @@ if ( ! class_exists( 'WooCommerce_SaveForLater' ) ) {
 					'query_var'    => true,
 					'supports'     => array( 'title', 'custom-fields', 'author' ),
 					'has_archive'    => false,
-					'show_in_menu'  => true,
+					'show_in_menu'  => false,
 					'show_in_nav_menus'  => false
 				) );
 			register_post_type( self::POST_TYPE, $post_type_args );
@@ -355,7 +352,8 @@ if ( ! class_exists( 'WooCommerce_SaveForLater' ) ) {
 
 		function maybe_enqueue_assets() {
 			wp_enqueue_style( 'woocommerce_sfl_style', $this->url . 'assets/style.css', array( 'woocommerce_frontend_styles' ), 1.0, 'screen' );
-			wp_enqueue_script( 'woocommerce_sfl_script', $this->url . 'assets/script.js', array( 'jquery' ), 1.0, true );
+			wp_enqueue_script( 'woocommerce_sfl_localstorage', $this->url . 'assets/jQuery.localStorage.js', array( 'jquery' ), 1.0, true );
+			wp_enqueue_script( 'woocommerce_sfl_script', $this->url . 'assets/script.js', array( 'woocommerce_sfl_localstorage' ), 1.0, true );
 
 			// using localized js namespace
 			wp_localize_script(

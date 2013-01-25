@@ -1,23 +1,23 @@
 <?php
 
-function wcsfl_get_active_wishlist_by_user( $user_ID = null ){
-	
-	$args = array(
-		'post_type' => WooCommerce_SaveForLater::POST_TYPE,
-		'posts_per_page' => 1,
-		'orderby' => 'menu_order'
-		);
+function wcsfl_get_active_wishlist_by_user(){
 
-	if ( is_null($user_ID) || ! is_user_logged_in() ) {
-		// $args['']
+	if ( get_current_user_id() ) {
+		// if the user isn't logged in we want to use local storage
 	} else {
-		$args['author'] = $user_ID;
+		$args = array(
+			'post_type' => WooCommerce_SaveForLater::POST_TYPE,
+			'posts_per_page' => 1,
+			'orderby' => 'menu_order',
+			'author' => get_current_user_id()
+			);
+
+		$get_wishlist = new WP_Query( $args );
+
+		$wishlist = !empty($get_wishlist->posts) ? $get_wishlist->posts[0] : array();
+		
+		return apply_filters( 'woocommerce_sfl_get_active_wishlist_by_user', $wishlist);
 	}
-
-	$get_wishlist = new WP_Query( $args );
-
-	$wishlist = !empty($get_wishlist->posts) ? $get_wishlist->posts[0] : false;
-	return apply_filters( 'woocommerce_sfl_get_active_wishlist_by_user', $wishlist);
 }
 
 function wcsfl_get_wishlist_meta( $wishlist_id, $product_id = null, $meta_key = null ) {

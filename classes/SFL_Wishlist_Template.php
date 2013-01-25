@@ -51,10 +51,10 @@ if ( !class_exists( 'SFL_Wishlist_Template' ) ) {
 		}
 
 		public static function banner() {
-			global $user_ID;
+
 			$instance = WooCommerce_SaveForLater::instance();
 
-			$wishlist = wcsfl_get_active_wishlist_by_user( $user_ID );
+			$wishlist = wcsfl_get_active_wishlist_by_user();
 
 			// get only the active products in a wishlist
 			$wishlist_items = wcsfl_get_wishlist_meta( $wishlist, null, 'quantity' );
@@ -68,7 +68,7 @@ if ( !class_exists( 'SFL_Wishlist_Template' ) ) {
 				get_permalink( woocommerce_get_page_id( 'shop' ) ),
 				__( 'Add some now.', 'woocommerce_sfl' )
 				);
-			echo apply_filters( 'woocommerce_sfl_template_not_found', $banner );
+			echo apply_filters( 'woocommerce_sfl_template_not_found', $message );
 		}
 	}
 }

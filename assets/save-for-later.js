@@ -10,6 +10,9 @@ wcsfl_products = wcsfl_banner.find('.products');
 // wait for dom to be ready
 jQuery(document).ready(function($){
 
+
+	alert( $.localStorage( 'foo', {data:'bar'} ) );
+
 	// animate the header showing
 	wcsfl_header.on( 'wcsfl_scripts_header', wcsfl_header, wcsfl_delay_slide );
 
@@ -101,6 +104,9 @@ jQuery(document).ready(function($){
 		});
 
 	});
+
+	foo = $.localStorage.getItem( 'foo' );
+	alert(foo.data);
 
 	wcsfl_banner.trigger('wcsfl_scripts');
 	wcsfl_header.trigger('wcsfl_scripts_header');
