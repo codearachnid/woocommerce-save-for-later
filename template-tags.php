@@ -2,8 +2,9 @@
 
 function wcsfl_get_active_wishlist_by_user(){
 
-	if ( get_current_user_id() ) {
+	if ( ! get_current_user_id() ) {
 		// if the user isn't logged in we want to use local storage
+		return false;
 	} else {
 		$args = array(
 			'post_type' => WooCommerce_SaveForLater::POST_TYPE,

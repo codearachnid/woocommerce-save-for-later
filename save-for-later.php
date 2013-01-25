@@ -8,6 +8,14 @@ if ( ! class_exists( 'WooCommerce_SaveForLater' ) ) {
 
 		protected static $instance;
 
+		private $default_ajax_response = array(
+			'msg' => null,
+			'status' => false,
+			'code' => null,
+			'wishlist' => array(),
+			'products' => array()
+			);
+
 		public $path;
 		public $dir;
 		public $url;
@@ -41,13 +49,14 @@ if ( ! class_exists( 'WooCommerce_SaveForLater' ) ) {
 			add_action( 'save_post', array( $this, 'save_post' ), 10, 2 );
 
 			// ajax handlers
+			add_action( 'wp_ajax_woocommerce_sfl_get_wishlist', array( $this, 'ajax_get_wishlist' ) ); // authenticated users
 			add_action( 'wp_ajax_woocommerce_sfl_add_to_wishlist', array( $this, 'ajax_add_to_wishlist' ) ); // authenticated users
 			add_action( 'wp_ajax_nopriv_woocommerce_sfl_add_to_wishlist', array( $this, 'ajax_add_to_wishlist' ) ); // anon users
 			add_action( 'wp_ajax_woocommerce_sfl_remove_from_wishlist', array( $this, 'ajax_remove_from_wishlist' ) ); // authenticated users
 			add_action( 'wp_ajax_nopriv_woocommerce_sfl_remove_from_wishlist', array( $this, 'ajax_remove_from_wishlist' ) ); // anon users
 
 			// templating
-			add_action( 'wp_enqueue_scripts', array( $this, 'maybe_enqueue_assets' ), 100 );
+			add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_assets' ), 100 );
 			add_action( 'wp_footer', array( $this, 'wp_footer' ) );
 			add_action( 'woocommerce_sfl_banner_meta', array( 'SFL_Wishlist_Template', 'banner_title'));
 			add_action( 'woocommerce_sfl_wishlist_banner_not_found', array( 'SFL_Wishlist_Template', 'not_found' ) );
@@ -63,6 +72,30 @@ if ( ! class_exists( 'WooCommerce_SaveForLater' ) ) {
 			register_activation_hook( __FILE__, array( 'SFL_Wishlist_Install', 'flush_rewrite_rules' ) );
 			if ( is_admin() && get_option( 'woocommerce_sfl_db_version' ) != $this->version )
 				add_action( 'init', array( 'SFL_Wishlist_Install', 'install_or_upgrade' ), 1 );
+		}
+
+		function ajax_get_wishlist() {
+
+			$wishlist = wcsfl_get_active_wishlist_by_user();
+
+			// get only the active products in a wishlist
+			$wishlist_items = array();
+			foreach( wcsfl_get_wishlist_meta( $wishlist, null, 'quantity' ) as $item ){
+				$wishlist_items[] = $this->get_wishlist_product( $item->product_id );
+			}
+
+			// wcsfl_display_banner_items( $wishlist, $wishlist_items );
+			$response = array(
+				'status' => 'success',
+				'code' => '100',
+				'wishlist' => $wishlist,
+				'products' => $wishlist_items
+				);
+
+			$response = wp_parse_args( $response, $this->default_ajax_response );
+			echo json_encode( $response );
+
+			die();
 		}
 
 		function ajax_remove_from_wishlist(){
@@ -83,10 +116,29 @@ if ( ! class_exists( 'WooCommerce_SaveForLater' ) ) {
 					// get only the active products in a wishlist
 					$wishlist_items = wcsfl_get_wishlist_meta( $wishlist, null, 'quantity' );
 
-					wcsfl_display_banner_items( $wishlist, $wishlist_items );
+					// wcsfl_display_banner_items( $wishlist, $wishlist_items );
+					$response = array(
+						'status' => 'success',
+						'code' => '100',
+						'wishlist' => $wishlist,
+						'products' => $wishlist_items
+						);
+				} else {
+					$response = array(
+						'status'=>'error',
+						'msg' => __('The request to remove the product from the wishlist failed.' )
+						);
 				}
 
+			} else {
+				$response = array(
+					'status'=>'error',
+					'msg' => __('The AJAX request is improperly formatted.')
+					);
 			}
+
+			$response = wp_parse_args( $response, $this->default_ajax_response );
+			echo json_encode( $response );
 
 			die();
 		}
@@ -107,12 +159,50 @@ if ( ! class_exists( 'WooCommerce_SaveForLater' ) ) {
 					// get only the active products in a wishlist
 					$wishlist_items = wcsfl_get_wishlist_meta( $wishlist, null, 'quantity' );
 
-					wcsfl_display_banner_items( $wishlist, $wishlist_items );
+					// wcsfl_display_banner_items( $wishlist, $wishlist_items );
+					$response = array(
+						'status' => 'success',
+						'code' => '100',
+						'wishlist' => $wishlist,
+						'products' => $wishlist_items
+						);
+				} else {
+					$response = array(
+						'status'=>'error',
+						'msg' => __('The request to add the product to your wishlist failed.' )
+						);
 				}
 
+			} else {
+				$response = array(
+					'status'=>'error',
+					'msg' => __('The AJAX request is improperly formatted.')
+					);
 			}
 
+			$response = wp_parse_args( $response, $this->default_ajax_response );
+			echo json_encode( $response );
+
 			die();
+		}
+
+		function get_wishlist_product( $ids = array() ){
+			if( is_array( $ids )) {
+				$products = array();
+				foreach( $ids as $id ) {
+					$products[] = self::get_wishlist_product( $id );
+				}
+				return $products;
+			} else {
+				$product_id = $ids;
+				$product = (object) array(
+					'ID' => $product_id,
+					'title' => get_the_title( $product_id ),
+					'permalink' => get_permalink( $product_id ),
+					'thumbnail' => get_the_post_thumbnail( $product_id, 'shop_thumbnail' )
+					);
+				return $product;
+			}
 		}
 
 
@@ -350,16 +440,15 @@ if ( ! class_exists( 'WooCommerce_SaveForLater' ) ) {
 			return apply_filters('woocommerce_sfl_generate_unique_slug', $unique_slug);
 		}
 
-		function maybe_enqueue_assets() {
-			wp_enqueue_style( 'woocommerce_sfl_style', $this->url . 'assets/style.css', array( 'woocommerce_frontend_styles' ), 1.0, 'screen' );
-			wp_enqueue_script( 'woocommerce_sfl_localstorage', $this->url . 'assets/jQuery.localStorage.js', array( 'jquery' ), 1.0, true );
-			wp_enqueue_script( 'woocommerce_sfl_script', $this->url . 'assets/script.js', array( 'woocommerce_sfl_localstorage' ), 1.0, true );
+		function enqueue_assets() {
+			if( !is_admin() ) {
+				wp_enqueue_style( 'woocommerce_sfl_style', $this->url . 'assets/save-for-later.css', array( 'woocommerce_frontend_styles' ), 1.0, 'screen' );
+				wp_enqueue_script( 'woocommerce_sfl_localstorage', $this->url . 'assets/jQuery.localStorage.js', array( 'jquery' ), 1.0, true );
+				wp_enqueue_script( 'woocommerce_sfl_script', $this->url . 'assets/save-for-later.js', array( 'woocommerce_sfl_localstorage' ), 1.0, true );
 
-			// using localized js namespace
-			wp_localize_script(
-				'woocommerce_sfl_script',
-				'wcsfl_settings' , array(
+				$localize_script = apply_filters('woocommerce_sfl_localize_script', array(
 					'ajaxurl' => admin_url( 'admin-ajax.php' ),
+					'user_status' => is_user_logged_in(),
 					'css_colors_enabled' => SFL_Wishlist_Settings::get_option('css_colors_enabled'),
 					'css_colors' => SFL_Wishlist_Settings::get_option('css_colors'),
 					'header_show' => sprintf( '%s %s',
@@ -367,10 +456,15 @@ if ( ! class_exists( 'WooCommerce_SaveForLater' ) ) {
 						SFL_Wishlist_Settings::get_option('frontend_label') ),
 					'header_hide' => sprintf( '%s %s',
 						__('Hide'),
-						SFL_Wishlist_Settings::get_option('frontend_label') )
-				)
-			);
+						SFL_Wishlist_Settings::get_option('frontend_label') ),
+					'template' => array(
+						'product' => SFL_Wishlist_Template::banner_product_template()
+						)
+					) );
 
+				// using localized js namespace
+				wp_localize_script( 'woocommerce_sfl_script', 'wcsfl_settings' , $localize_script);
+			}
 		}
 
 		function wp_footer(){

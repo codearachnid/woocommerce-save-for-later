@@ -6,6 +6,13 @@ if ( !defined( 'ABSPATH' ) )
 if ( !class_exists( 'SFL_Wishlist_Template' ) ) {
 	class SFL_Wishlist_Template {
 
+		public static function banner_product_template(){
+			$html = sprintf( '<a class="product" href="{0}">{1}<span class="add_to_cart" data-icon="i" data-id="{2}"></span><span class="remove" data-icon="x" data-id="{2}"></span><div class="quick_view">%s</div></a>',
+				__('Quick View', 'woocommerce_sfl')
+				);
+			return apply_filters( 'woocommerce_sfl_banner_product_template', $html );
+		}
+
 		public static function product_image_overlay() {
 			$overlay_image = sprintf( '<i data-icon="o" data-product_id="%s" class="product_image_overlay save_for_later">%s</i>',
 				get_the_ID(),
@@ -52,14 +59,14 @@ if ( !class_exists( 'SFL_Wishlist_Template' ) ) {
 
 		public static function banner() {
 
-			$instance = WooCommerce_SaveForLater::instance();
+			// $instance = WooCommerce_SaveForLater::instance();
 
-			$wishlist = wcsfl_get_active_wishlist_by_user();
+			// $wishlist = wcsfl_get_active_wishlist_by_user();
 
 			// get only the active products in a wishlist
-			$wishlist_items = wcsfl_get_wishlist_meta( $wishlist, null, 'quantity' );
+			// $wishlist_items = wcsfl_get_wishlist_meta( $wishlist, null, 'quantity' );
 
-			include apply_filters( 'woocommerce_sfl_template_banner_file', $instance->path . 'views/wishlist-banner.php' );
+			include apply_filters( 'woocommerce_sfl_template_banner_file', WooCommerce_SaveForLater::instance()->path . 'views/wishlist-banner.php' );
 		}
 
 		public static function not_found() {

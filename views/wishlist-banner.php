@@ -14,8 +14,8 @@ if ( !defined( 'ABSPATH' ) )
 			</div>
 			<div class="banner-items">
 			<?php
-			print_r($wishlist_items);
-			wcsfl_display_banner_items( $wishlist, $wishlist_items );
+			// print_r($wishlist_items);
+			// wcsfl_display_banner_items( $wishlist, $wishlist_items );
 
 			?>
 			</div>

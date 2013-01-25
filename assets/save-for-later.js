@@ -5,13 +5,27 @@
 wcsfl_banner = jQuery('#wcsfl_banner');
 wcsfl_header = wcsfl_banner.find('.header');
 wcsfl_products = wcsfl_banner.find('.products');
-
+wcsfl_storage = jQuery.localStorage( 'woocommerce_wishlist' );
 
 // wait for dom to be ready
 jQuery(document).ready(function($){
 
+	if( wcsfl_settings.user_status ) {
+		if( typeof wcsfl_storage == 'undefined' ) {
+			$.post( wcsfl_settings.ajaxurl, { action: "woocommerce_sfl_get_wishlist" }).done( function( response ) {
+				data = jQuery.parseJSON( response );
+				wishlist = '';
+				$.each( data.products, function( i, product ){
+					wishlist += wcsfl_settings.template.product.wcsfl_format( product.permalink, product.thumbnail, product.ID );
+				});
+				wcsfl_products.find('.banner-items').html( wishlist );
+			});	
+		}
+	}
 
-	alert( $.localStorage( 'foo', {data:'bar'} ) );
+// alert( 'user_status' + wcsfl_settings.user_status );
+	// alert( $.localStorage( 'foo', {data:'bar'} ) );
+	
 
 	// animate the header showing
 	wcsfl_header.on( 'wcsfl_scripts_header', wcsfl_header, wcsfl_delay_slide );
@@ -105,8 +119,8 @@ jQuery(document).ready(function($){
 
 	});
 
-	foo = $.localStorage.getItem( 'foo' );
-	alert(foo.data);
+	// foo = $.localStorage.getItem( 'foo' );
+	// alert(foo.data);
 
 	wcsfl_banner.trigger('wcsfl_scripts');
 	wcsfl_header.trigger('wcsfl_scripts_header');
@@ -117,3 +131,12 @@ jQuery(document).ready(function($){
 function wcsfl_delay_slide(){
 	jQuery(this).delay(1000).slideDown();
 }
+
+String.prototype.wcsfl_format = function() {
+    var formatted = this;
+    for (var i = 0; i < arguments.length; i++) {
+        var regexp = new RegExp('\\{'+i+'\\}', 'gi');
+        formatted = formatted.replace(regexp, arguments[i]);
+    }
+    return formatted;
+};
