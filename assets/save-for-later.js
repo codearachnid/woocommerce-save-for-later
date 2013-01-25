@@ -2,30 +2,21 @@
  * WooCommerce: Save For Later
  */
 
-wcsfl_banner = jQuery('#wcsfl_banner');
-wcsfl_header = wcsfl_banner.find('.header');
-wcsfl_products = wcsfl_banner.find('.products');
-wcsfl_storage = jQuery.localStorage( 'woocommerce_wishlist' );
+var wcsfl_banner = jQuery('#wcsfl_banner');
+var wcsfl_header = wcsfl_banner.find('.header');
+var wcsfl_products = wcsfl_banner.find('.products');
 
 // wait for dom to be ready
 jQuery(document).ready(function($){
 
 	if( wcsfl_settings.user_status ) {
-		if( typeof wcsfl_storage == 'undefined' ) {
-			$.post( wcsfl_settings.ajaxurl, { action: "woocommerce_sfl_get_wishlist" }).done( function( response ) {
-				data = jQuery.parseJSON( response );
-				wishlist = '';
-				$.each( data.products, function( i, product ){
-					wishlist += wcsfl_settings.template.product.wcsfl_format( product.permalink, product.thumbnail, product.ID );
-				});
-				wcsfl_products.find('.banner-items').html( wishlist );
-			});	
+		storage = $.localStorage.getItem( 'woocommerce_wishlist' );
+		if( typeof storage == 'undefined' || storage == null || !storage ) {
+			wcsfl_get_wishlist( { action: "woocommerce_sfl_get_wishlist" } );
+		} else {
+			wcsfl_product_template();
 		}
 	}
-
-// alert( 'user_status' + wcsfl_settings.user_status );
-	// alert( $.localStorage( 'foo', {data:'bar'} ) );
-	
 
 	// animate the header showing
 	wcsfl_header.on( 'wcsfl_scripts_header', wcsfl_header, wcsfl_delay_slide );
@@ -70,12 +61,10 @@ jQuery(document).ready(function($){
 		mouseenter : function(){
 			$(this).find('img.wp-post-image').css('opacity', 1);
 			$(this).find('span.remove').fadeIn();
-			// $(this).find('div,span').fadeIn();
 		},
 		mouseleave : function(){
 			$(this).find('img.wp-post-image').css('opacity', .5);
 			$(this).find('span.remove').fadeOut();
-			// $(this).find('div,span').fadeOut();
 		}
 	}, '#wcsfl_banner .banner-items .product' );
 
@@ -97,7 +86,7 @@ jQuery(document).ready(function($){
 			product_id: $(this).attr('data-id'), // wishlist params
 		};
 
-		wcsfl_products.find('.banner-items').load( wcsfl_settings.ajaxurl, data );
+		wcsfl_get_wishlist( data );
 
 	});
 
@@ -111,16 +100,9 @@ jQuery(document).ready(function($){
 			form: $(this).parent('form').serialize() // get form current data
 		};
 
-		wcsfl_products.find('.banner-items').load( wcsfl_settings.ajaxurl, data, function(response, status, xhr) {
-			if (status == 'success' && ! wcsfl_products.is( ":visible" ) ){
-				wcsfl_header.trigger('click');
-			}
-		});
+		wcsfl_get_wishlist( data, true );
 
 	});
-
-	// foo = $.localStorage.getItem( 'foo' );
-	// alert(foo.data);
 
 	wcsfl_banner.trigger('wcsfl_scripts');
 	wcsfl_header.trigger('wcsfl_scripts_header');
@@ -130,6 +112,34 @@ jQuery(document).ready(function($){
 
 function wcsfl_delay_slide(){
 	jQuery(this).delay(1000).slideDown();
+}
+
+function wcsfl_get_wishlist( data, is_open ){
+	is_open = typeof is_open !== 'undefined' ? is_open : false;
+	jQuery.post( wcsfl_settings.ajaxurl, data ).done( function( response ) {
+		data = jQuery.parseJSON( response );
+		storage = { products: data.products, wishlist: data.wishlist, user_status: wcsfl_settings.user_status };
+		jQuery.localStorage( 'woocommerce_wishlist', storage );
+		wcsfl_product_template();
+		if (is_open == true && data.status == 'success' && ! wcsfl_products.is( ":visible" ) ){
+			wcsfl_header.trigger('click');
+		}
+	});
+}
+
+function wcsfl_product_template(){
+	storage = jQuery.localStorage.getItem( 'woocommerce_wishlist' );
+	if( wcsfl_settings.user_status == storage.user_status ) {
+		wishlist = '';
+		jQuery.each( storage.products, function( i, product ){
+			wishlist += wcsfl_settings.template.product.wcsfl_format( product.permalink, product.thumbnail, product.ID );
+		});
+		wishlist = wishlist.length == 0 ? wcsfl_settings.template.not_found : wishlist;
+	} else {
+		jQuery.localStorage.removeItem( 'woocommerce_wishlist' );
+		wishlist = wcsfl_settings.template.not_found;
+	}
+	wcsfl_products.find('.banner-items').html( wishlist );
 }
 
 String.prototype.wcsfl_format = function() {

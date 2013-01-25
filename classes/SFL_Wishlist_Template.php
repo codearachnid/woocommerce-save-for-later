@@ -75,7 +75,7 @@ if ( !class_exists( 'SFL_Wishlist_Template' ) ) {
 				get_permalink( woocommerce_get_page_id( 'shop' ) ),
 				__( 'Add some now.', 'woocommerce_sfl' )
 				);
-			echo apply_filters( 'woocommerce_sfl_template_not_found', $message );
+			return apply_filters( 'woocommerce_sfl_template_not_found', $message );
 		}
 	}
 }
