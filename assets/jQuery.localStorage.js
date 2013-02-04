@@ -35,33 +35,21 @@
 		setItem: function( key, value ){
 			var value = JSON.stringify( value );
 			if ( !supported ){
-				try {
-					$.localStorage.cookie( key, value );
-				} catch( e ){
-					console.log('Local Storage not supported by this browser. Install the cookie plugin on your site to take advantage of the same functionality. You can get it at https://github.com/carhartl/jquery-cookie');
-				}
+				$.localStorage.cookie( key, value );
 			}
 			window.localStorage.setItem( key, value );
 			return this.result( value );
 		},
 		getItem: function( key ){
 			if ( !supported ){
-				try {
-					return this.result( $.localStorage.cookie( key ) );
-				} catch(e){
-					return null;
-				}
+				return this.result( $.localStorage.cookie( key ) );
  			}
 			return this.result( window.localStorage.getItem( key ) );
 		},
 		removeItem: function( key ){
 			if ( !supported ){
-				try {
-					$.localStorage.cookie( key, null );
-					return true;
-				} catch( e ){
-					return false;
-				}
+				$.localStorage.cookie( key, null );
+				return true;
  			}
 			window.localStorage.removeItem( key );
 			return true;

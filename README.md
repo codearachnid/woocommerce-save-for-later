@@ -16,4 +16,4 @@ This plugin uses icons as webfont by [Modern Pictograms](http://thedesignoffice.
 * write cron to remove all wishlist with author id 0 and cookie expiry = current time - wishlist creation time
 * Build front end views to list the wishlist as well as to display appropriate messages.
 * Clean ups and finalization before final v1.0 push
-* Add Sharing options into wishlist banner
+* Add Sharing options into wishlist dock

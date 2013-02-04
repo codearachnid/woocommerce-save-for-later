@@ -99,7 +99,7 @@ class SFL_Wishlist_Settings extends WC_Settings_API {
 					'type' => 'woocommerce_sfl_styles'
 				),
 				array(
-					'name' => __( "Enable Banner", 'woocommerce_sfl' ),
+					'name' => __( "Enable Dock", 'woocommerce_sfl' ),
 					'desc'   => __( "", 'woocommerce_sfl' ),
 					'id'   => 'woocommerce_wcsfl_wp_footer_enabled',
 					'std'   => $this->default['wp_footer_enabled'],
@@ -107,7 +107,7 @@ class SFL_Wishlist_Settings extends WC_Settings_API {
 				),
 				array(
 					'name' => __( "Show In Store Only", 'woocommerce_sfl' ),
-					'desc'   => __( "Show the wishlist banner only on store pages, otherwise will show through whole site", 'woocommerce_sfl' ),
+					'desc'   => __( "Show the wishlist dock only on store pages, otherwise will show through whole site", 'woocommerce_sfl' ),
 					'id'   => 'woocommerce_wcsfl_store_only',
 					'std'   => $this->default['store_only'],
 					'type'   => 'checkbox',

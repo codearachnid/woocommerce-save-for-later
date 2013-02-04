@@ -6,11 +6,11 @@ if ( !defined( 'ABSPATH' ) )
 if ( !class_exists( 'SFL_Wishlist_Template' ) ) {
 	class SFL_Wishlist_Template {
 
-		public static function banner_product_template(){
+		public static function dock_product_template(){
 			$html = sprintf( '<a class="product" href="{0}">{1}<span class="add_to_cart" data-icon="i" data-id="{2}"></span><span class="remove" data-icon="x" data-id="{2}"></span><div class="quick_view">%s</div></a>',
 				__('Quick View', 'woocommerce_sfl')
 				);
-			return apply_filters( 'woocommerce_sfl_banner_product_template', $html );
+			return apply_filters( 'woocommerce_sfl_dock_product_template', $html );
 		}
 
 		public static function product_image_overlay() {
@@ -33,31 +33,31 @@ if ( !class_exists( 'SFL_Wishlist_Template' ) ) {
 			echo apply_filters( 'woocommerce_sfl_template_product_button', $button, $product );
 		}
 
-		public static function banner_title(){
-			$banner = sprintf('<h3 data-icon="j">%s</h3>',
+		public static function dock_title(){
+			$dock = sprintf('<h3 data-icon="j">%s</h3>',
 				SFL_Wishlist_Settings::get_option( 'frontend_label' )
 				);
 
 			if( is_user_logged_in() ) {
 				$myaccount_page_id = get_option( 'woocommerce_myaccount_page_id' );
 				if ( $myaccount_page_id ) {
-					$banner .= sprintf('<a class="settings" href="%s" data-icon="(">%s</a>',
+					$dock .= sprintf('<a class="settings" href="%s" data-icon="(">%s</a>',
 						get_permalink( $myaccount_page_id ),
 						__('My Account', 'woocommerce_sfl')
 						);
 				}
 				
 			} else {
-				$banner .= sprintf('<a class="create_account" href="%s" data-icon="o">%s</a>',
+				$dock .= sprintf('<a class="create_account" href="%s" data-icon="o">%s</a>',
 					'#',
 					__('Create an Account', 'woocommerce_sfl')
 					);	
 			}
 
-			echo apply_filters( 'woocommerce_sfl_template_banner_title', $banner );
+			echo apply_filters( 'woocommerce_sfl_template_dock_title', $dock );
 		}
 
-		public static function banner() {
+		public static function dock() {
 
 			// $instance = WooCommerce_SaveForLater::instance();
 
@@ -66,7 +66,7 @@ if ( !class_exists( 'SFL_Wishlist_Template' ) ) {
 			// get only the active products in a wishlist
 			// $wishlist_items = wcsfl_get_wishlist_meta( $wishlist, null, 'quantity' );
 
-			include apply_filters( 'woocommerce_sfl_template_banner_file', WooCommerce_SaveForLater::instance()->path . 'views/wishlist-banner.php' );
+			include apply_filters( 'woocommerce_sfl_template_dock_file', WooCommerce_SaveForLater::instance()->path . 'views/wishlist-dock.php' );
 		}
 
 		public static function not_found() {

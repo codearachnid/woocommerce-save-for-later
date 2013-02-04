@@ -49,17 +49,19 @@ if ( ! class_exists( 'WooCommerce_SaveForLater' ) ) {
 			add_action( 'save_post', array( $this, 'save_post' ), 10, 2 );
 
 			// ajax handlers
-			add_action( 'wp_ajax_woocommerce_sfl_get_wishlist', array( $this, 'ajax_get_wishlist' ) ); // authenticated users
-			add_action( 'wp_ajax_nopriv_woocommerce_sfl_get_wishlist', array( $this, 'ajax_get_wishlist' ) ); // authenticated users
-			add_action( 'wp_ajax_woocommerce_sfl_add_to_wishlist', array( $this, 'ajax_add_to_wishlist' ) ); // authenticated users
-			add_action( 'wp_ajax_nopriv_woocommerce_sfl_add_to_wishlist', array( $this, 'ajax_add_to_wishlist' ) ); // anon users
-			add_action( 'wp_ajax_woocommerce_sfl_remove_from_wishlist', array( $this, 'ajax_remove_from_wishlist' ) ); // authenticated users
-			add_action( 'wp_ajax_nopriv_woocommerce_sfl_remove_from_wishlist', array( $this, 'ajax_remove_from_wishlist' ) ); // anon users
+			add_action( 'wp_ajax_wcsfl_get', array( $this, 'ajax_get' ) ); // authenticated users
+			add_action( 'wp_ajax_nopriv_wcsfl_get', array( $this, 'ajax_get' ) ); // authenticated users
+			add_action( 'wp_ajax_wcsfl_add', array( $this, 'ajax_add' ) ); // authenticated users
+			add_action( 'wp_ajax_nopriv_wcsfl_add', array( $this, 'ajax_add' ) ); // anon users
+			add_action( 'wp_ajax_wcsfl_remove', array( $this, 'ajax_remove' ) ); // authenticated users
+			add_action( 'wp_ajax_nopriv_wcsfl_remove', array( $this, 'ajax_remove' ) ); // anon users
+			add_action( 'wp_ajax_wcsfl_lookup', array( $this, 'ajax_lookup' ) ); // authenticated users
+			add_action( 'wp_ajax_nopriv_wcsfl_lookup', array( $this, 'ajax_lookup' ) ); // anon users
 
 			// templating
 			add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_assets' ), 100 );
 			add_action( 'wp_footer', array( $this, 'wp_footer' ) );
-			add_action( 'woocommerce_sfl_banner_meta', array( 'SFL_Wishlist_Template', 'banner_title'));
+			add_action( 'woocommerce_sfl_dock_meta', array( 'SFL_Wishlist_Template', 'dock_title'));
 
 			// hook into woocommerce for templating
 			add_action( 'woocommerce_before_shop_loop_item_title', array( 'SFL_Wishlist_Template', 'product_image_overlay' ), 20 );
@@ -74,7 +76,7 @@ if ( ! class_exists( 'WooCommerce_SaveForLater' ) ) {
 				add_action( 'init', array( 'SFL_Wishlist_Install', 'install_or_upgrade' ), 1 );
 		}
 
-		function ajax_get_wishlist() {
+		function ajax_get() {
 
 			$wishlist = wcsfl_get_active_wishlist_by_user();
 
@@ -84,7 +86,7 @@ if ( ! class_exists( 'WooCommerce_SaveForLater' ) ) {
 				$wishlist_items[] = $this->get_wishlist_product( $item->product_id );
 			}
 
-			// wcsfl_display_banner_items( $wishlist, $wishlist_items );
+			// wcsfl_display_dock_items( $wishlist, $wishlist_items );
 			$response = array(
 				'status' => 'success',
 				'code' => '100',
@@ -98,7 +100,7 @@ if ( ! class_exists( 'WooCommerce_SaveForLater' ) ) {
 			die();
 		}
 
-		function ajax_remove_from_wishlist(){
+		function ajax_remove(){
 
 			// will return anon wishlists if userid isn't known
 			// if the wishlist is provided and not a legit wishlist 
@@ -111,7 +113,7 @@ if ( ! class_exists( 'WooCommerce_SaveForLater' ) ) {
 
 				if( wcsfl_delete_wishlist_meta( $wishlist_id, $product_id ) ){
 
-					$this->ajax_get_wishlist();
+					$this->ajax_get();
 
 				} else {
 					$response = array(
@@ -134,7 +136,7 @@ if ( ! class_exists( 'WooCommerce_SaveForLater' ) ) {
 		}
 
 		// callback for wishlist ajax
-		function ajax_add_to_wishlist() {
+		function ajax_add() {
 			
 			if ( !empty( $_REQUEST ) ) {
 				extract( $_REQUEST );
@@ -144,13 +146,49 @@ if ( ! class_exists( 'WooCommerce_SaveForLater' ) ) {
 
 				if( !empty($wishlist) && $this->add_to_wishlist( $wishlist, $form ) ){
 
-					$this->ajax_get_wishlist();
+					$this->ajax_get();
 
 				} else {
 					$response = array(
 						'status'=>'error',
 						'msg' => __('The request to add the product to your wishlist failed.' )
 						);
+				}
+
+			} else {
+				$response = array(
+					'status'=>'error',
+					'msg' => __('The AJAX request is improperly formatted.')
+					);
+			}
+
+			$response = wp_parse_args( $response, $this->default_ajax_response );
+			echo json_encode( $response );
+
+			die();
+		}
+
+		function ajax_lookup(){
+
+			$response = array(
+				'status' => 'success',
+				'code' => '100',
+				'product' => (object) array(
+					'ID' => null,
+					'title' => null,
+					'permalink' => null,
+					'thumbnail' => null
+					)
+				);
+
+			if ( !empty( $_REQUEST ) ) {
+				extract( $_REQUEST );
+
+				if ( ! $product_id = absint( $wishlist['product_id'] ) ) {
+					$response['status'] = 'error';
+					$response['msg'] = __('You must supply a valid product ID to lookup.');
+				} else {
+					$response['product'] = $this->get_wishlist_product( $product_id );
 				}
 
 			} else {
@@ -438,7 +476,7 @@ if ( ! class_exists( 'WooCommerce_SaveForLater' ) ) {
 						__('Hide'),
 						SFL_Wishlist_Settings::get_option('frontend_label') ),
 					'template' => array(
-						'product' => SFL_Wishlist_Template::banner_product_template(),
+						'product' => SFL_Wishlist_Template::dock_product_template(),
 						'not_found' => SFL_Wishlist_Template::not_found()
 						)
 					) );
@@ -453,8 +491,8 @@ if ( ! class_exists( 'WooCommerce_SaveForLater' ) ) {
 				( SFL_Wishlist_Settings::get_option( 'store_only' ) == 'no' || 
 				( SFL_Wishlist_Settings::get_option( 'store_only' ) == 'yes' && ( is_woocommerce() || is_cart() ) ) )
 			){
-				// display the wishlist banner
-				SFL_Wishlist_Template::banner();
+				// display the wishlist dock
+				SFL_Wishlist_Template::dock();
 			}
 		}
 

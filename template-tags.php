@@ -138,13 +138,13 @@ if ( !function_exists( 'wcsfl_get_wishlists_anon' ) ) {
   }
 }
 
-function wcsfl_display_banner_items( $wishlist = null, $wishlist_items = array() ){
-	do_action( 'woocommerce_sfl_wishlist_banner_items_before', $wishlist );
+function wcsfl_display_dock_items( $wishlist = null, $wishlist_items = array() ){
+	do_action( 'woocommerce_sfl_wishlist_dock_items_before', $wishlist );
 
 	if ( !empty( $wishlist_items ) ) {
 		foreach($wishlist_items as $wishlist_product ){
 
-			do_action( 'woocommerce_sfl_wishlist_banner_item_before', $wishlist_product->product_id, $wishlist_product );
+			do_action( 'woocommerce_sfl_wishlist_dock_item_before', $wishlist_product->product_id, $wishlist_product );
 
 			printf('<a class="%s" href="%s">%s<span class="add_to_cart" data-icon="i" data-id="%s"></span><span class="remove" data-icon="x" data-id="%s"></span><div class="quick_view">%s</div></a>',
 				'product',
@@ -155,12 +155,12 @@ function wcsfl_display_banner_items( $wishlist = null, $wishlist_items = array()
 				__('Quick View', 'woocommerce_sfl')
 				);
 
-			do_action( 'woocommerce_sfl_wishlist_banner_item_after', $wishlist_product->product_id, $wishlist_product );
+			do_action( 'woocommerce_sfl_wishlist_dock_item_after', $wishlist_product->product_id, $wishlist_product );
 
 		}
 	} else {
-		do_action( 'woocommerce_sfl_wishlist_banner_not_found', $wishlist );
+		do_action( 'woocommerce_sfl_wishlist_dock_not_found', $wishlist );
 	}
 
-	do_action( 'woocommerce_sfl_wishlist_banner_items_after', $wishlist );
+	do_action( 'woocommerce_sfl_wishlist_dock_items_after', $wishlist );
 }
