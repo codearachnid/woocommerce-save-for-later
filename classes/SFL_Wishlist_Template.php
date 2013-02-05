@@ -69,6 +69,11 @@ if ( !class_exists( 'SFL_Wishlist_Template' ) ) {
 			include apply_filters( 'woocommerce_sfl_template_dock_file', WooCommerce_SaveForLater::instance()->path . 'views/wishlist-dock.php' );
 		}
 
+		public static function register_form() {
+			global $woocommerce;
+			include apply_filters( 'woocommerce_sfl_template_register_form_file', WooCommerce_SaveForLater::instance()->path . 'views/register-form.php' );
+		}
+
 		public static function not_found() {
 			$message = sprintf( '<span>%s <a href="%s">%s</a></span',
 				__( 'It seems you haven\'t added any items into your wishlist.', 'woocommerce_sfl' ),

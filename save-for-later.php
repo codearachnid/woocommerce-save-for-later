@@ -59,6 +59,7 @@ if ( ! class_exists( 'WooCommerce_SaveForLater' ) ) {
 			add_action( 'wp_ajax_nopriv_wcsfl_lookup', array( $this, 'ajax_lookup' ) ); // anon users
 
 			// templating
+			add_shortcode( 'woocommerce_create_account', array( $this, 'shortcode_create_account' ) );
 			add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_assets' ), 100 );
 			add_action( 'wp_footer', array( $this, 'wp_footer' ) );
 			add_action( 'woocommerce_sfl_dock_meta', array( 'SFL_Wishlist_Template', 'dock_title'));
@@ -67,6 +68,10 @@ if ( ! class_exists( 'WooCommerce_SaveForLater' ) ) {
 			add_action( 'woocommerce_before_shop_loop_item_title', array( 'SFL_Wishlist_Template', 'product_image_overlay' ), 20 );
 			add_action( 'woocommerce_after_shop_loop_item', array( 'SFL_Wishlist_Template', 'product_button' ), 20 ); // link on product collections page
 			add_action( 'woocommerce_after_add_to_cart_button', array( 'SFL_Wishlist_Template', 'product_button' ), 20 ); // link on product single page
+		}
+
+		function shortcode_create_account(){
+			SFL_Wishlist_Template::register_form();
 		}
 
 		function check_install() {
