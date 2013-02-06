@@ -40,32 +40,31 @@ if ( !class_exists( 'SFL_Wishlist_Template' ) ) {
 
 			if( is_user_logged_in() ) {
 				$myaccount_page_id = get_option( 'woocommerce_myaccount_page_id' );
-				if ( $myaccount_page_id ) {
-					$dock .= sprintf('<a class="settings" href="%s" data-icon="(">%s</a>',
-						get_permalink( $myaccount_page_id ),
-						__('My Account', 'woocommerce_sfl')
-						);
-				}
-				
+				$class = 'my_account';
+				$icon = '(';
+				$title = __('My Account', 'woocommerce_sfl');
 			} else {
-				$dock .= sprintf('<a class="create_account" href="%s" data-icon="o">%s</a>',
-					'#',
-					__('Create an Account', 'woocommerce_sfl')
-					);	
+				$myaccount_page_id = (get_option('woocommerce_enable_myaccount_registration')=='yes') ? get_option( 'woocommerce_myaccount_page_id' ) : get_option( 'woocommerce_createaccount_page_id' );
+				$permalink = '#';
+				$class = 'my_account create';
+				$icon = 'o';
+				$title = __('Create an Account', 'woocommerce_sfl');
 			}
+
+			$permalink = ( $myaccount_page_id ) ? get_permalink( $myaccount_page_id ) : '';
+
+			$dock .= apply_filters('woocommerce_sfl_template_dock_account_link',
+				!empty($permalink) ? sprintf('<a href="%s" class="%s" data-icon="%s">%s</a>',
+					$permalink,
+					$class,
+					$icon,
+					$title
+					) : '', is_user_logged_in(), $permalink, $class, $icon, $title );
 
 			echo apply_filters( 'woocommerce_sfl_template_dock_title', $dock );
 		}
 
 		public static function dock() {
-
-			// $instance = WooCommerce_SaveForLater::instance();
-
-			// $wishlist = wcsfl_get_active_wishlist_by_user();
-
-			// get only the active products in a wishlist
-			// $wishlist_items = wcsfl_get_wishlist_meta( $wishlist, null, 'quantity' );
-
 			include apply_filters( 'woocommerce_sfl_template_dock_file', WooCommerce_SaveForLater::instance()->path . 'views/wishlist-dock.php' );
 		}
 

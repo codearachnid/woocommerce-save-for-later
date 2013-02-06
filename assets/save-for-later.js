@@ -21,7 +21,7 @@ jQuery(document).ready(function($){
 	}
 
 	// animate the header showing
-	wcsfl_header.on( 'wcsfl_scripts_header', wcsfl_header, $.wcsfl_wishlist.slide );
+	wcsfl_header.on( 'wcsfl_scripts_header', $.wcsfl_wishlist.slide );
 
 	// setup styling for wishlist dock
 	if( wcsfl_settings.css_colors_enabled == 'yes' ) {
@@ -108,6 +108,16 @@ jQuery(document).ready(function($){
 
 	});
 
+	// look into merging when a user creates a new account/login
+	// @link https://github.com/codearachnid/woocommerce-save-for-later/issues/1
+	// $('.my_account').on( 'click', function( event ){
+	// 	if( $(this).hasClass('create') ) {
+	// 		$.wcsfl_wishlist.storage.add( 'do_merge', '1' );
+	// 	} else {
+	// 		$.wcsfl_wishlist.storage.remove( 'do_merge' );
+	// 	}
+	// });
+
 	wcsfl_dock.trigger('wcsfl_scripts');
 	wcsfl_header.trigger('wcsfl_scripts_header');
 	wcsfl_products.trigger('wcsfl_scripts_products');
@@ -137,20 +147,43 @@ jQuery(document).ready(function($){
 		return $.wcsfl_wishlist.plugin.template();
 	}
 
+	$.wcsfl_wishlist.storage = function(){
+		return $.wcsfl_wishlist.plugin.get();
+	}
+
+	$.wcsfl_wishlist.storage.add = function( key, data ){
+		$.wcsfl_wishlist.plugin.add( key, data );
+	}
+
+	$.wcsfl_wishlist.storage.remove = function( key ){
+		$.wcsfl_wishlist.plugin.remove( key );
+	}
+
+	$.wcsfl_wishlist.storage.exists = function( key ){
+		return $.wcsfl_wishlist.plugin.exists( key );
+	}
+
 	$.wcsfl_wishlist.plugin = {
 		manage: function( data, is_open ){
 			_this = this;
 			_this.get();
 			is_open = typeof is_open !== 'undefined' ? is_open : false;
 			data = jQuery.extend( { do_ajax: false, do_action: 'get' }, data );
-			wcsfl_dock.on( 'wcsfl_response', wcsfl_dock, jQuery.wcsfl_wishlist.template );
-
+			wcsfl_dock.on( 'wcsfl_response', jQuery.wcsfl_wishlist.template );
 			// user logged in or force do_ajax
 			if( settings.user_status || data.do_ajax ) {
 				data.action = 'wcsfl_' + data.do_action;
 				jQuery.post( settings.ajaxurl, data ).done( function( response ) {
 					data = jQuery.parseJSON( response );
-					storage = { products: data.products, wishlist: data.wishlist, user_status: settings.user_status };
+					// @link https://github.com/codearachnid/woocommerce-save-for-later/issues/1
+					// if( _this.exists( storage.do_merge) ) {
+					// 	storage.products = jQuery.extend( storage.products, data.products );
+					// 	storage.wishlist = jQuery.extend( storage.wishlist, data.wishlist );
+					// 	storage.user_status = jQuery.extend( storage.user_status, settings.user_status );
+					// } else {
+						storage = { products: data.products, wishlist: data.wishlist, user_status: settings.user_status };
+					// }
+					// _this.remove( 'do_merge' );
 					_this.save();
 					if (is_open == true && data.status == 'success' && ! wcsfl_products.is( ":visible" ) ){
 						wcsfl_header.trigger('click');
@@ -161,7 +194,7 @@ jQuery(document).ready(function($){
 				// no user information == local store only
 				switch( data.do_action ) {
 					case 'remove':
-						product_id = _this.exists( data.product_id );
+						product_id = _this.product_exists( data.product_id );
 						if( product_id !== false ){
 							storage.products.splice( product_id, 1 );
 							_this.save();
@@ -169,7 +202,7 @@ jQuery(document).ready(function($){
 						}
 						break;
 					case 'add':
-						if( _this.exists( data.wishlist.product_id ) === false ) {
+						if( _this.product_exists( data.wishlist.product_id ) === false ) {
 							jQuery.post( settings.ajaxurl, { 
 								action: 'wcsfl_lookup', 
 								wishlist: data.wishlist 
@@ -192,11 +225,26 @@ jQuery(document).ready(function($){
 		},
 		get: function(){
 			storage = jQuery.extend( s_default, jQuery.localStorage.getItem( s_key ) );
+			return storage;
+		},
+		add: function( key, data ){
+			storage = this.get();
+			storage[ key ] = data;
+			this.save();
+		},
+		remove: function( key ){
+			storage = this.get();
+			delete storage[ key ];
+			this.save();
+		},
+		exists: function( key ){
+			storage = this.get();
+			return storage.hasOwnProperty( key );
 		},
 		save: function(){
 			jQuery.localStorage( s_key, storage );
 		},
-		exists: function( product_id ){
+		product_exists: function( product_id ){
 			this.get();
 			key = false;
 			jQuery.each( storage.products, function( i, product ){
