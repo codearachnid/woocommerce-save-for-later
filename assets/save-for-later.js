@@ -2,6 +2,7 @@
  * WooCommerce: Save For Later
  */
 
+var wcsfl_myaccount = jQuery('#wcsfl_myaccount');
 var wcsfl_dock = jQuery('#wcsfl_dock');
 var wcsfl_header = wcsfl_dock.find('.header');
 var wcsfl_products = wcsfl_dock.find('.products');
@@ -68,7 +69,7 @@ jQuery(document).ready(function($){
 			$(this).find('img.wp-post-image').css('opacity', .5);
 			$(this).find('span.remove').fadeOut();
 		}
-	}, '#wcsfl_dock .dock-items .product' );
+	}, '#wcsfl_dock .dock-items .product, #wcsfl_myaccount .products .product' );
 
 	$(document).on({
 		mouseenter : function() {
@@ -80,7 +81,7 @@ jQuery(document).ready(function($){
 	},'.product > a');
 
 	// remove from wishlist
-	$(document).on( "click", '#wcsfl_dock .dock-items .product > span.remove', function( event ){
+	$(document).on( "click", '#wcsfl_dock .dock-items .product > span.remove, #wcsfl_myaccount .products .product > span.remove', function( event ){
 		event.preventDefault();
 
 		var data = {
@@ -266,6 +267,9 @@ jQuery(document).ready(function($){
 			} else {
 				jQuery.localStorage.removeItem( s_key );
 				wishlist = settings.template.not_found;
+			}
+			if( wcsfl_myaccount.length > 0 ) {
+				wcsfl_myaccount.find('.products').html( wishlist );
 			}
 			wcsfl_products.find('.dock-items').html( wishlist );
 			wcsfl_products.trigger('wcsfl_product_template');

@@ -65,6 +65,7 @@ if ( ! class_exists( 'WooCommerce_SaveForLater' ) ) {
 			add_action( 'woocommerce_sfl_dock_meta', array( 'SFL_Wishlist_Template', 'dock_title'));
 
 			// hook into woocommerce for templating
+			add_action( 'woocommerce_before_my_account', array('SFL_Wishlist_Template', 'my_account_dashboard') );
 			add_action( 'woocommerce_before_shop_loop_item_title', array( 'SFL_Wishlist_Template', 'product_image_overlay' ), 20 );
 			add_action( 'woocommerce_after_shop_loop_item', array( 'SFL_Wishlist_Template', 'product_button' ), 20 ); // link on product collections page
 			add_action( 'woocommerce_after_add_to_cart_button', array( 'SFL_Wishlist_Template', 'product_button' ), 20 ); // link on product single page

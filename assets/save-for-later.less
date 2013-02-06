@@ -9,7 +9,7 @@
 @css_colors_header_text: #e6db55;
 @css_colors_background: #666666;
 @css_colors_text: #777777;
-
+@opacity_overlay: .5;
 
 // Modern Pictograms (http://thedesignoffice.org/project/modern-pictograms)
 @font-face {
@@ -63,7 +63,49 @@
 	}
 
 }
+div#wcsfl_myaccount{
+	width:100%;
 
+	> .products{
+
+		display: inline-block;
+		vertical-align: top;
+
+		.product{
+
+			display: inline-block;
+			margin-right:10px;	
+			position: relative;
+			border:1px solid @css_colors_border;
+			font-weight: bold;
+			text-decoration: none;
+			background: #fff;
+
+			img.wp-post-image{
+				opacity: @opacity_overlay;
+			}
+
+			span{
+
+				position: absolute;
+				top:4px;
+				right:4px;
+				font-size: 18px;
+				color:black;
+				display:none;
+
+			}
+
+			div.quick_view{
+				display: none;
+			}
+
+			.add_to_cart{
+				top: 26px;
+			}
+		}
+	}
+}
 div#wcsfl_dock{
 
 	width:100%;
@@ -154,7 +196,7 @@ div#wcsfl_dock{
 				background: #fff;
 
 				img.wp-post-image{
-					opacity: .5;
+					opacity: @opacity_overlay;
 				}
 
 				span{

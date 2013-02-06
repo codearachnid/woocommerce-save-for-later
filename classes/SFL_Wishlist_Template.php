@@ -6,6 +6,28 @@ if ( !defined( 'ABSPATH' ) )
 if ( !class_exists( 'SFL_Wishlist_Template' ) ) {
 	class SFL_Wishlist_Template {
 
+		public static function my_account_dashboard(){
+			$html = sprintf( '<div id="wcsfl_myaccount"><h2>%s</h2><p>%s</p><div class="products">',
+				__('Wishlist', 'woocommerce_sfl'),
+				__('These are items you have decided to save for later for easy access to add to your cart.', 'woocommerce_sfl')
+				);
+
+			// $wishlist = wcsfl_get_active_wishlist_by_user();
+
+			// foreach( wcsfl_get_wishlist_meta( $wishlist, null, 'quantity' ) as $item ){
+			// 	$html .= apply_filters( 'woocommerce_sfl_my_account_dashboard_product', sprintf( '<a class="product" href="%s">%s<span class="add_to_cart" data-icon="i" data-id="%s"></span><span class="remove" data-icon="x" data-id="%s"></span></a>',
+			// 		get_permalink( $item->product_id ),
+			// 		get_the_post_thumbnail( $item->product_id, 'shop_thumbnail' ),
+			// 		$item->product_id,
+			// 		$item->product_id
+			// 		), $item );
+			// }
+
+			$html .= '</div></div>';
+
+			echo apply_filters('woocommerce_sfl_my_account_dashboard', $html );
+		}
+
 		public static function dock_product_template(){
 			$html = sprintf( '<a class="product" href="{0}">{1}<span class="add_to_cart" data-icon="i" data-id="{2}"></span><span class="remove" data-icon="x" data-id="{2}"></span><div class="quick_view">%s</div></a>',
 				__('Quick View', 'woocommerce_sfl')
