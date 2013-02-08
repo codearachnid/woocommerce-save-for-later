@@ -8,7 +8,7 @@ Version: 1.0
 Author: Timothy Wood (@codearachnid)
 Author URI: http://www.codearachnid.com
 Author Email: tim@imaginesimplicity.com
-Text Domain: woocommerce_sfl
+Text Domain: woocommerce_wishlist
 License: GPLv2 or later
 
 Notes: THIS FILE IS FOR LOADING THE LIBS ONLY
@@ -47,8 +47,8 @@ require_once 'template-tags.php';
  * @return void
  */
 function WooCommerce_SaveForLater_Load() {
-	if ( in_array( 'woocommerce/woocommerce.php', apply_filters( 'woocommerce_sfl_active_plugins', get_option( 'active_plugins' ) ) ) ) {
-		if ( apply_filters( 'woocommerce_sfl_rating_pre_check', class_exists( 'WooCommerce_SaveForLater' ) && WooCommerce_SaveForLater::prerequisites() ) ) {
+	if ( in_array( 'woocommerce/woocommerce.php', apply_filters( 'woocommerce_wishlist_active_plugins', get_option( 'active_plugins' ) ) ) ) {
+		if ( apply_filters( 'woocommerce_wishlist_rating_pre_check', class_exists( 'WooCommerce_SaveForLater' ) && WooCommerce_SaveForLater::prerequisites() ) ) {
 			add_action( 'init', array( 'WooCommerce_SaveForLater', 'instance' ), -100, 0 );
 		} else {
 			// let the user know prerequisites weren't met: Wrong Versions

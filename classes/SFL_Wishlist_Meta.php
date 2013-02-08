@@ -4,7 +4,7 @@ if ( !class_exists( 'SFL_Wishlist_Meta' ) ) {
 	class SFL_Wishlist_Meta {
 
 		const META_TABLE = 'woocommerce_wishlistmeta';
-		const JOIN_KEY = 'woocommerce_sfl_product_id';
+		const JOIN_KEY = 'woocommerce_wishlist_product_id';
 
 		function get( $wishlist_post_id, $product_id = null, $meta_key = null ) {
 
@@ -77,7 +77,7 @@ if ( !class_exists( 'SFL_Wishlist_Meta' ) ) {
 			$meta_value = stripslashes_deep( $meta_value );
 			$meta_value = sanitize_meta( $meta_key, $meta_value, WooCommerce_SaveForLater::POST_TYPE );
 
-			$check = apply_filters( 'woocommerce_sfl_add_meta', null, $wishlist_post_id, $product_id, $meta_key, $meta_value );
+			$check = apply_filters( 'woocommerce_wishlist_add_meta', null, $wishlist_post_id, $product_id, $meta_key, $meta_value );
 
 			if ( null !== $check )
 				return $check;
@@ -95,7 +95,7 @@ if ( !class_exists( 'SFL_Wishlist_Meta' ) ) {
 			$_meta_value = $meta_value;
 			$meta_value = maybe_serialize( $meta_value );
 
-			do_action( 'woocommerce_sfl_add_meta', $wishlist_post_id, $product_id, $meta_key, $meta_value );
+			do_action( 'woocommerce_wishlist_add_meta', $wishlist_post_id, $product_id, $meta_key, $meta_value );
 
 			$result = $wpdb->insert(
 				$meta_db_table,
@@ -121,7 +121,7 @@ if ( !class_exists( 'SFL_Wishlist_Meta' ) ) {
 			// TODO: Look into caching performance
 			// wp_cache_delete($object_id, WooCommerce_SaveForLater::POST_TYPE . '_meta');
 
-			do_action( 'woocommerce_sfl_added_meta', $wishlist_post_id, $product_id, $meta_key, $_meta_value );
+			do_action( 'woocommerce_wishlist_added_meta', $wishlist_post_id, $product_id, $meta_key, $_meta_value );
 
 			// returns false if the row could not be inserted
 			return $mid;
