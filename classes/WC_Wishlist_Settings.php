@@ -4,11 +4,11 @@ if ( !defined( 'ABSPATH' ) )
 	die( '-1' );
 
 /**
- * SFL_Wishlist_Settings class.
+ * WC_Wishlist_Settings class.
  *
  * @extends WC_Settings_API
  */
-class SFL_Wishlist_Settings extends WC_Settings_API {
+class WC_Wishlist_Settings extends WC_Settings_API {
 
 	private $default;
 	protected static $instance;
@@ -41,9 +41,15 @@ class SFL_Wishlist_Settings extends WC_Settings_API {
 		// limit the amount of products someone can add to their wishlist
 		$this->default[ 'limit_add_amount' ] = apply_filters( 'woocommerce_wishlist_setting_default_limit_add_amount', 20 );
 
+		do_action( 'woocommerce_wishlist_settings' );
+
 		add_action( 'woocommerce_general_settings', array( $this, 'add_general_fields' ) );
 		add_action( 'woocommerce_admin_field_woocommerce_wishlist_styles', array( $this, 'style_picker' ) );
 		add_action( 'woocommerce_update_options_general', array( $this, 'update_options' ) );
+	}
+
+	function get_defaults(){
+		return self::instance()->default;
 	}
 
 	function get_option( $key = null ) {
@@ -80,7 +86,7 @@ class SFL_Wishlist_Settings extends WC_Settings_API {
 
 		if ( $old_colors != $new_colors ) {
 			update_option( self::PREFIX . 'css_colors', $new_colors );
-			// woocommerce_compile_less_styles();
+			// WC_compile_less_styles();
 		}
 	}
 

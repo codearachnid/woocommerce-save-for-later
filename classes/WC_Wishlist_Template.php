@@ -3,18 +3,18 @@
 if ( !defined( 'ABSPATH' ) )
 	die( '-1' );
 
-if ( !class_exists( 'SFL_Wishlist_Template' ) ) {
-	class SFL_Wishlist_Template {
+if ( !class_exists( 'woocommerce_Wishlist_Template' ) ) {
+	class WC_Wishlist_Template {
 
 		public static function my_account_dashboard(){
-			$html = sprintf( '<div id="woocommerce_wishlist_myaccount"><h2>%s</h2><p>%s</p><div class="products">',
+			$html = sprintf( '<div id="wc_wishlist_myaccount"><h2>%s</h2><p>%s</p><div class="products">',
 				__('Wishlist', 'woocommerce_wishlist'),
 				__('These are items you have decided to save for later for easy access to add to your cart.', 'woocommerce_wishlist')
 				);
 
-			// $wishlist = woocommerce_wishlist_get_active_wishlist_by_user();
+			// $wishlist = WC_wishlist_get_active_wishlist_by_user();
 
-			// foreach( woocommerce_wishlist_get_wishlist_meta( $wishlist, null, 'quantity' ) as $item ){
+			// foreach( WC_wishlist_get_wishlist_meta( $wishlist, null, 'quantity' ) as $item ){
 			// 	$html .= apply_filters( 'woocommerce_wishlist_my_account_dashboard_product', sprintf( '<a class="product" href="%s">%s<span class="add_to_cart" data-icon="i" data-id="%s"></span><span class="remove" data-icon="x" data-id="%s"></span></a>',
 			// 		get_permalink( $item->product_id ),
 			// 		get_the_post_thumbnail( $item->product_id, 'shop_thumbnail' ),
@@ -57,7 +57,7 @@ if ( !class_exists( 'SFL_Wishlist_Template' ) ) {
 
 		public static function dock_title(){
 			$dock = sprintf('<h3 data-icon="j">%s</h3>',
-				SFL_Wishlist_Settings::get_option( 'frontend_label' )
+				WC_Wishlist_Settings::get_option( 'frontend_label' )
 				);
 
 			if( is_user_logged_in() ) {
@@ -87,12 +87,12 @@ if ( !class_exists( 'SFL_Wishlist_Template' ) ) {
 		}
 
 		public static function dock() {
-			include apply_filters( 'woocommerce_wishlist_template_dock_file', WooCommerce_SaveForLater::instance()->path . 'views/wishlist-dock.php' );
+			include apply_filters( 'woocommerce_wishlist_template_dock_file', WC_SaveForLater::instance()->path . 'views/wishlist-dock.php' );
 		}
 
 		public static function register_form() {
-			global $woocommerce;
-			include apply_filters( 'woocommerce_wishlist_template_register_form_file', WooCommerce_SaveForLater::instance()->path . 'views/register-form.php' );
+			global $WC;
+			include apply_filters( 'woocommerce_wishlist_template_register_form_file', WC_SaveForLater::instance()->path . 'views/register-form.php' );
 		}
 
 		public static function not_found() {

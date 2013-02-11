@@ -4,7 +4,7 @@ if ( !defined( 'ABSPATH' ) )
 	die( '-1' );
 
 ?>
-<div id="woocommerce_wishlist_dock" style="bottom: 0px;">
+<div id="wc_wishlist_dock" style="bottom: 0px;">
 	<div class="header" class="closed" data-icon="&#x2010;"></div>
 	<div class="products">
 		<div class="wrapper">

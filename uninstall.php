@@ -6,7 +6,7 @@
  *
  * @author 		WooThemes
  * @category 	Core
- * @package 	WooCommerce/Uninstaller
+ * @package 	WC/Uninstaller
  * @version     1.6.4
  */
 if( !defined('WP_UNINSTALL_PLUGIN') ) exit();

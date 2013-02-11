@@ -1,7 +1,7 @@
 <?php
 
-if ( !class_exists( 'SFL_Wishlist_Install' ) ) {
-	class SFL_Wishlist_Install {
+if ( !class_exists( 'WC_Wishlist_Install' ) ) {
+	class WC_Wishlist_Install {
 
 		function __construct() {
 
@@ -17,13 +17,13 @@ if ( !class_exists( 'SFL_Wishlist_Install' ) ) {
 		}
 
 		function do_install() {
-			SFL_Wishlist_Meta::create_tables();
+			WC_Wishlist_Query::create_tables();
+			foreach( WC_Wishlist_Settings::get_defaults() as $key => $default ){
+				update_option( 'woocommerce_wishlist_' . $key, $default );	
+			}
 			self::init_user_roles();
 			// Update version
-			update_option( 'woocommerce_wishlist_db_version', WooCommerce_SaveForLater::instance()->version );
-			update_option( 'woocommerce_wishlist_unique_url_length', 6 );
-			// create a page for user registration
-			// woocommerce_create_page( esc_sql( _x('change-password', 'page_slug', 'woocommerce') ), 'woocommerce_change_password_page_id', __('Change Password', 'woocommerce'), '[woocommerce_change_password]', woocommerce_get_page_id('myaccount') );
+			update_option( 'woocommerce_wishlist_db_version', WC_SaveForLater::instance()->version );
 			flush_rewrite_rules();
 		}
 

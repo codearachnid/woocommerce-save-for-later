@@ -2,62 +2,63 @@
  * WooCommerce: Save For Later
  */
 
-var woocommerce_wishlist_myaccount = jQuery('#woocommerce_wishlist_myaccount');
-var woocommerce_wishlist_dock = jQuery('#woocommerce_wishlist_dock');
-var woocommerce_wishlist_header = woocommerce_wishlist_dock.find('.header');
-var woocommerce_wishlist_products = woocommerce_wishlist_dock.find('.products');
+var wc_wishlist_myaccount = jQuery('#wc_wishlist_myaccount');
+var wc_wishlist_dock = jQuery('#wc_wishlist_dock');
+var wc_wishlist_header = wc_wishlist_dock.find('.header');
+var wc_wishlist_products = wc_wishlist_dock.find('.products');
 
 // wait for dom to be ready
 jQuery(document).ready(function($){
 
-	if( woocommerce_wishlist_settings.user_status ) {
+	if( wc_wishlist_settings.user_status ) {
 		storage = $.localStorage.getItem( 'woocommerce_wishlist' );
 		if( typeof storage == 'undefined' || storage == null || !storage ) {
-			$.woocommerce_wishlist( { do_action: "get" } );
+			$.wc_wishlist( { do_action: "get" } );
 		} else {
-			$.woocommerce_wishlist.template();
+			$.wc_wishlist.template();
 		}
 	} else {
-		$.woocommerce_wishlist.template();
+		$.wc_wishlist.template();
 	}
 
 	// animate the header showing
-	woocommerce_wishlist_header.on( 'woocommerce_wishlist_scripts_header', $.woocommerce_wishlist.slide );
+	wc_wishlist_header.on( 'woocommerce_wishlist_scripts_header', $.wc_wishlist.slide );
+	wc_wishlist_header.on('woocommerce_wishlist_response', function(){alert(this)} );
 
 	// setup styling for wishlist dock
-	if( woocommerce_wishlist_settings.css_colors_enabled == 'yes' ) {
-		woocommerce_wishlist_header.css({
-			'border-top-color' : woocommerce_wishlist_settings.css_colors.border,
-			'background' : woocommerce_wishlist_settings.css_colors.header_bg,
-			'color' : woocommerce_wishlist_settings.css_colors.header_text
+	if( wc_wishlist_settings.css_colors_enabled == 'yes' ) {
+		wc_wishlist_header.css({
+			'border-top-color' : wc_wishlist_settings.css_colors.border,
+			'background' : wc_wishlist_settings.css_colors.header_bg,
+			'color' : wc_wishlist_settings.css_colors.header_text
 		});
-		woocommerce_wishlist_products.css({
-			'background' : woocommerce_wishlist_settings.css_colors.background,
-			'color' : woocommerce_wishlist_settings.css_colors.text
+		wc_wishlist_products.css({
+			'background' : wc_wishlist_settings.css_colors.background,
+			'color' : wc_wishlist_settings.css_colors.text
 		});
-		woocommerce_wishlist_dock.trigger('woocommerce_wishlist_scripts_css');
+		wc_wishlist_dock.trigger('woocommerce_wishlist_scripts_css');
 	}
 
 	// enable the wishlist dock open events
-	woocommerce_wishlist_header.on( "click", function( event ){
+	wc_wishlist_header.on( "click", function( event ){
 		event.preventDefault();
-		if (woocommerce_wishlist_products.is( ":visible" )){
+		if (wc_wishlist_products.is( ":visible" )){
 			cssClass = 'closed';
 			icon = '&#x2010;';
-			text = woocommerce_wishlist_settings.header_show;
-			woocommerce_wishlist_products.slideUp();
+			text = wc_wishlist_settings.header_show;
+			wc_wishlist_products.slideUp();
 		} else {
 			icon = '/';
 			cssClass = 'open';
-			text = woocommerce_wishlist_settings.header_hide;
-			woocommerce_wishlist_products.slideDown();			 
+			text = wc_wishlist_settings.header_hide;
+			wc_wishlist_products.slideDown();			 
 		}
 		// set the header display/data by visibility
 		$(this).html( text ).attr({
 			'data-icon' : $('<div/>').html( icon ).text(), // because jquery escapes ampersands
 			'class' : 'header ' + cssClass
 		});
-	}).html( woocommerce_wishlist_settings.header_show );
+	}).html( wc_wishlist_settings.header_show );
 
 	// enable the wishlist dock products hover events
 	$(document).on({ 
@@ -69,7 +70,7 @@ jQuery(document).ready(function($){
 			$(this).find('img.wp-post-image').css('opacity', .5);
 			$(this).find('span.remove').fadeOut();
 		}
-	}, '#woocommerce_wishlist_dock .dock-items .product, #woocommerce_wishlist_myaccount .products .product' );
+	}, '#wc_wishlist_dock .dock-items .product, #wc_wishlist_myaccount .products .product' );
 
 	$(document).on({
 		mouseenter : function() {
@@ -81,7 +82,7 @@ jQuery(document).ready(function($){
 	},'.product > a');
 
 	// remove from wishlist
-	$(document).on( "click", '#woocommerce_wishlist_dock .dock-items .product > span.remove, #woocommerce_wishlist_myaccount .products .product > span.remove', function( event ){
+	$(document).on( "click", '#wc_wishlist_dock .dock-items .product > span.remove, #wc_wishlist_myaccount .products .product > span.remove', function( event ){
 		event.preventDefault();
 
 		var data = {
@@ -91,7 +92,7 @@ jQuery(document).ready(function($){
 
 		$(this).parents('.product').fadeOut( 'slow' );
 
-		$.woocommerce_wishlist( data );
+		$.wc_wishlist( data );
 
 	});
 
@@ -105,23 +106,23 @@ jQuery(document).ready(function($){
 			form: $(this).parent('form').serialize() // get form current data
 		};
 
-		$.woocommerce_wishlist( data, true );
+		$.wc_wishlist( data, true );
 
 	});
 
 	// look into merging when a user creates a new account/login
-	// @link https://github.com/codearachnid/woocommerce-save-for-later/issues/1
+	// @link https://github.com/codearachnid/wc-save-for-later/issues/1
 	// $('.my_account').on( 'click', function( event ){
 	// 	if( $(this).hasClass('create') ) {
-	// 		$.woocommerce_wishlist.storage.add( 'do_merge', '1' );
+	// 		$.wc_wishlist.storage.add( 'do_merge', '1' );
 	// 	} else {
-	// 		$.woocommerce_wishlist.storage.remove( 'do_merge' );
+	// 		$.wc_wishlist.storage.remove( 'do_merge' );
 	// 	}
 	// });
 
-	woocommerce_wishlist_dock.trigger('woocommerce_wishlist_scripts');
-	woocommerce_wishlist_header.trigger('woocommerce_wishlist_scripts_header');
-	woocommerce_wishlist_products.trigger('woocommerce_wishlist_scripts_products');
+	wc_wishlist_dock.trigger('woocommerce_wishlist_scripts');
+	wc_wishlist_header.trigger('woocommerce_wishlist_scripts_header');
+	wc_wishlist_products.trigger('woocommerce_wishlist_scripts_products');
 
 });
 
@@ -133,50 +134,50 @@ jQuery(document).ready(function($){
 			wishlist : null
 		},
 		s_key = 'woocommerce_wishlist',
-		settings = woocommerce_wishlist_settings,
+		settings = wc_wishlist_settings,
 		storage = null;
 
-	$.woocommerce_wishlist = function( data, is_open ){
-		return $.woocommerce_wishlist.plugin.manage( data, is_open );
+	$.wc_wishlist = function( data, is_open ){
+		return $.wc_wishlist.plugin.manage( data, is_open );
 	}
 	
-	$.woocommerce_wishlist.slide = function(){
+	$.wc_wishlist.slide = function(){
 		jQuery(this).delay(1000).slideDown();
 	}
 
-	$.woocommerce_wishlist.template = function(){
-		return $.woocommerce_wishlist.plugin.template();
+	$.wc_wishlist.template = function(){
+		return $.wc_wishlist.plugin.template();
 	}
 
-	$.woocommerce_wishlist.storage = function(){
-		return $.woocommerce_wishlist.plugin.get();
+	$.wc_wishlist.storage = function(){
+		return $.wc_wishlist.plugin.get();
 	}
 
-	$.woocommerce_wishlist.storage.add = function( key, data ){
-		$.woocommerce_wishlist.plugin.add( key, data );
+	$.wc_wishlist.storage.add = function( key, data ){
+		$.wc_wishlist.plugin.add( key, data );
 	}
 
-	$.woocommerce_wishlist.storage.remove = function( key ){
-		$.woocommerce_wishlist.plugin.remove( key );
+	$.wc_wishlist.storage.remove = function( key ){
+		$.wc_wishlist.plugin.remove( key );
 	}
 
-	$.woocommerce_wishlist.storage.exists = function( key ){
-		return $.woocommerce_wishlist.plugin.exists( key );
+	$.wc_wishlist.storage.exists = function( key ){
+		return $.wc_wishlist.plugin.exists( key );
 	}
 
-	$.woocommerce_wishlist.plugin = {
+	$.wc_wishlist.plugin = {
 		manage: function( data, is_open ){
 			_this = this;
 			_this.get();
 			is_open = typeof is_open !== 'undefined' ? is_open : false;
 			data = jQuery.extend( { do_ajax: false, do_action: 'get' }, data );
-			woocommerce_wishlist_dock.on( 'woocommerce_wishlist_response', jQuery.woocommerce_wishlist.template );
+			$(_this).on( 'woocommerce_wishlist_response', _this.template );
 			// user logged in or force do_ajax
 			if( settings.user_status || data.do_ajax ) {
 				data.action = 'woocommerce_wishlist_' + data.do_action;
 				jQuery.post( settings.ajaxurl, data ).done( function( response ) {
 					data = jQuery.parseJSON( response );
-					// @link https://github.com/codearachnid/woocommerce-save-for-later/issues/1
+					// @link https://github.com/codearachnid/wc-save-for-later/issues/1
 					// if( _this.exists( storage.do_merge) ) {
 					// 	storage.products = jQuery.extend( storage.products, data.products );
 					// 	storage.wishlist = jQuery.extend( storage.wishlist, data.wishlist );
@@ -186,10 +187,10 @@ jQuery(document).ready(function($){
 					// }
 					// _this.remove( 'do_merge' );
 					_this.save();
-					if (is_open == true && data.status == 'success' && ! woocommerce_wishlist_products.is( ":visible" ) ){
-						woocommerce_wishlist_header.trigger('click');
+					if (is_open == true && data.status == 'success' && ! wc_wishlist_products.is( ":visible" ) ){
+						wc_wishlist_header.trigger('click');
 					}
-					woocommerce_wishlist_dock.trigger('woocommerce_wishlist_response');
+					$(_this).trigger('woocommerce_wishlist_response');
 				});
 			} else {
 				// no user information == local store only
@@ -199,7 +200,7 @@ jQuery(document).ready(function($){
 						if( product_id !== false ){
 							storage.products.splice( product_id, 1 );
 							_this.save();
-							woocommerce_wishlist_dock.trigger( 'woocommerce_wishlist_response' );
+							$(_this).trigger( 'woocommerce_wishlist_response' );
 						}
 						break;
 					case 'add':
@@ -213,10 +214,10 @@ jQuery(document).ready(function($){
 									storage.products.unshift( data.product );
 									_this.save();
 								}
-								if (is_open == true && data.status == 'success' && ! woocommerce_wishlist_products.is( ":visible" ) ){
-									woocommerce_wishlist_header.trigger('click');
+								if (is_open == true && data.status == 'success' && ! wc_wishlist_products.is( ":visible" ) ){
+									wc_wishlist_header.trigger('click');
 								}
-								woocommerce_wishlist_dock.trigger('woocommerce_wishlist_response');
+								$(_this).trigger('woocommerce_wishlist_response');
 							});
 						}
 						break;
@@ -268,11 +269,11 @@ jQuery(document).ready(function($){
 				jQuery.localStorage.removeItem( s_key );
 				wishlist = settings.template.not_found;
 			}
-			if( woocommerce_wishlist_myaccount.length > 0 ) {
-				woocommerce_wishlist_myaccount.find('.products').html( wishlist );
+			if( wc_wishlist_myaccount.length > 0 ) {
+				wc_wishlist_myaccount.find('.products').html( wishlist );
 			}
-			woocommerce_wishlist_products.find('.dock-items').html( wishlist );
-			woocommerce_wishlist_products.trigger('woocommerce_wishlist_product_template');
+			wc_wishlist_products.trigger('woocommerce_wishlist_product_template').find('.dock-items').html( wishlist );
+			// wc_wishlist_products.trigger('woocommerce_wishlist_product_template');
 		},
 		format: function(){
 			var formatted = arguments[0];

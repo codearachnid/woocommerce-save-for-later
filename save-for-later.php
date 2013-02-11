@@ -3,8 +3,8 @@
 if ( !defined( 'ABSPATH' ) )
 	die( '-1' );
 
-if ( ! class_exists( 'WooCommerce_SaveForLater' ) ) {
-	class WooCommerce_SaveForLater {
+if ( ! class_exists( 'WC_SaveForLater' ) ) {
+	class WC_SaveForLater {
 
 		protected static $instance;
 
@@ -21,7 +21,7 @@ if ( ! class_exists( 'WooCommerce_SaveForLater' ) ) {
 		public $url;
 		public $version = '1.0';
 
-		const PLUGIN_NAME = 'WooCommerce: Save For Later';
+		const PLUGIN_NAME = 'WC: Save For Later';
 		const MIN_WC_VERSION = '1.6.5';
 		const MIN_WP_VERSION = '3.4';
 		const MIN_PHP_VERSION = '5.3';
@@ -36,7 +36,7 @@ if ( ! class_exists( 'WooCommerce_SaveForLater' ) ) {
 
 			// enable the settings
 			if ( is_admin() )
-				new SFL_Wishlist_Settings();
+				new WC_Wishlist_Settings();
 
 			// set core vars
 			$this->path = self::get_plugin_path();
@@ -62,42 +62,35 @@ if ( ! class_exists( 'WooCommerce_SaveForLater' ) ) {
 			add_shortcode( 'woocommerce_create_account', array( $this, 'shortcode_create_account' ) );
 			add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_assets' ), 100 );
 			add_action( 'wp_footer', array( $this, 'wp_footer' ) );
-			add_action( 'woocommerce_wishlist_dock_meta', array( 'SFL_Wishlist_Template', 'dock_title'));
+			add_action( 'woocommerce_wishlist_dock_meta', array( 'WC_Wishlist_Template', 'dock_title'));
 
-			// hook into woocommerce for templating
-			add_action( 'woocommerce_before_my_account', array('SFL_Wishlist_Template', 'my_account_dashboard') );
-			add_action( 'woocommerce_before_shop_loop_item_title', array( 'SFL_Wishlist_Template', 'product_image_overlay' ), 20 );
-			add_action( 'woocommerce_after_shop_loop_item', array( 'SFL_Wishlist_Template', 'product_button' ), 20 ); // link on product collections page
-			add_action( 'woocommerce_after_add_to_cart_button', array( 'SFL_Wishlist_Template', 'product_button' ), 20 ); // link on product single page
+			// hook into WC for templating
+			add_action( 'woocommerce_before_my_account', array('WC_Wishlist_Template', 'my_account_dashboard') );
+			add_action( 'woocommerce_before_shop_loop_item_title', array( 'WC_Wishlist_Template', 'product_image_overlay' ), 20 );
+			add_action( 'woocommerce_after_shop_loop_item', array( 'WC_Wishlist_Template', 'product_button' ), 20 ); // link on product collections page
+			add_action( 'woocommerce_after_add_to_cart_button', array( 'WC_Wishlist_Template', 'product_button' ), 20 ); // link on product single page
 		}
 
 		function shortcode_create_account(){
-			SFL_Wishlist_Template::register_form();
+			WC_Wishlist_Template::register_form();
 		}
 
 		function check_install() {
-			register_activation_hook( __FILE__, array( 'SFL_Wishlist_Install', 'activate' ) );
-			register_activation_hook( __FILE__, array( 'SFL_Wishlist_Install', 'flush_rewrite_rules' ) );
+			register_activation_hook( __FILE__, array( 'WC_Wishlist_Install', 'activate' ) );
+			register_activation_hook( __FILE__, array( 'WC_Wishlist_Install', 'flush_rewrite_rules' ) );
 			if ( is_admin() && get_option( 'woocommerce_wishlist_db_version' ) != $this->version )
-				add_action( 'init', array( 'SFL_Wishlist_Install', 'install_or_upgrade' ), 1 );
+				add_action( 'init', array( 'WC_Wishlist_Install', 'install_or_upgrade' ), 1 );
 		}
 
 		function ajax_get() {
 
-			$wishlist = woocommerce_wishlist_get_active_wishlist_by_user();
+			$wishlist = woocommerce_wishlist_get_active_wishlist();
 
-			// get only the active products in a wishlist
-			$wishlist_items = array();
-			foreach( woocommerce_wishlist_get_wishlist_meta( $wishlist, null, 'quantity' ) as $item ){
-				$wishlist_items[] = $this->get_wishlist_product( $item->product_id );
-			}
-
-			// woocommerce_wishlist_display_dock_items( $wishlist, $wishlist_items );
 			$response = array(
 				'status' => 'success',
 				'code' => '100',
 				'wishlist' => $wishlist,
-				'products' => $wishlist_items
+				'products' => WC_Wishlist_Query::get_products( $wishlist->ID )
 				);
 
 			$response = wp_parse_args( $response, $this->default_ajax_response );
@@ -111,13 +104,13 @@ if ( ! class_exists( 'WooCommerce_SaveForLater' ) ) {
 			// will return anon wishlists if userid isn't known
 			// if the wishlist is provided and not a legit wishlist 
 			// then we try to get the active wishlist
-			$wishlist_id = ! empty($wishlist['wishlist_id']) && woocommerce_wishlist_is_wishlist( $wishlist_id ) ? $wishlist['wishlist_id'] : woocommerce_wishlist_get_active_wishlist_by_user();
+			$wishlist_id = ! empty($wishlist['wishlist_id']) && woocommerce_wishlist_is_wishlist( $wishlist_id ) ? $wishlist['wishlist_id'] : woocommerce_wishlist_get_active_wishlist();
 
 			// forward request to meta manager with the data and wait for its response
 			if ( !empty( $_REQUEST ) && !empty( $wishlist_id ) ) {
 				extract( $_REQUEST );
 
-				if( woocommerce_wishlist_delete_wishlist_meta( $wishlist_id, $product_id ) ){
+				if( woocommerce_wishlist_delete_meta( $wishlist_id, $product_id ) ){
 
 					$this->ajax_get();
 
@@ -234,7 +227,7 @@ if ( ! class_exists( 'WooCommerce_SaveForLater' ) ) {
 
 			$defaults = array(
 				'quantity' => 1,
-				'added' => date('c')
+				'added' => time()
 				);
 
 			if ( ! $product_id = absint( $wishlist['product_id'] ) ) 
@@ -243,7 +236,8 @@ if ( ! class_exists( 'WooCommerce_SaveForLater' ) ) {
 			// will return anon wishlists if userid isn't known
 			// if the wishlist is provided and not a legit wishlist 
 			// then we try to get the active wishlist
-			$wishlist_id = ! empty($wishlist['wishlist_id']) && woocommerce_wishlist_is_wishlist( $wishlist_id ) ? $wishlist['wishlist_id'] : woocommerce_wishlist_get_active_wishlist_by_user();
+			$wishlist_id = ! empty($wishlist['wishlist_id']) && woocommerce_wishlist_is_wishlist( $wishlist['wishlist_id'] ) ? $wishlist['wishlist_id'] : woocommerce_wishlist_get_active_wishlist();
+			$wishlist_id = is_object( $wishlist_id ) && !empty($wishlist_id->ID) ? $wishlist_id->ID : $wishlist_id;
 
 			// if no wishlists are returned then let's protect
 			if ( empty( $wishlist_id ) ) {
@@ -256,7 +250,7 @@ if ( ! class_exists( 'WooCommerce_SaveForLater' ) ) {
 			// set wishlist meta and defaults
 			$attributes = wp_parse_args( $attributes, $defaults );			
 			foreach( $attributes as $key => $attribute ) {
-				woocommerce_wishlist_add_wishlist_meta( $wishlist_id, $product_id, $key, $attribute );	
+				woocommerce_wishlist_add_meta( $wishlist_id, $product_id, $key, $attribute );	
 			}
 			
 			return true;
@@ -346,13 +340,13 @@ if ( ! class_exists( 'WooCommerce_SaveForLater' ) ) {
 				'post_category'  => array( 0 ),
 				'post_status'    => 'publish',
 				'post_title'     => $title,
-				'post_type'      => WooCommerce_SaveForLater::POST_TYPE
+				'post_type'      => WC_SaveForLater::POST_TYPE
 			);
 
 			return wp_insert_post( $post );
 		}
 
-		function get_wishlists( $userid, $post_type = WooCommerce_SaveForLater::POST_TYPE, $limit = 1 ) {
+		function get_wishlists( $userid, $post_type = WC_SaveForLater::POST_TYPE, $limit = 1 ) {
 			$wishlists_post_ids = array();
 
 			$wishlists = new WP_Query( array(
@@ -394,7 +388,7 @@ if ( ! class_exists( 'WooCommerce_SaveForLater' ) ) {
 
 		function set_cookie_anon( $post_id, $post, $remember = false ) {
 			//verify post is not a revision & is a wishlist & user is not logged in
-			if ( $post->post_status != 'auto-draft' && ( WooCommerce_SaveForLater::POST_TYPE == $_REQUEST['post_type'] || ( isset( $_REQUEST['action'] ) && $_REQUEST['action'] == 'into_wishlist' ) ) && ! wp_is_post_revision( $post_id ) && !is_user_logged_in() ) {
+			if ( $post->post_status != 'auto-draft' && ( WC_SaveForLater::POST_TYPE == $_REQUEST['post_type'] || ( isset( $_REQUEST['action'] ) && $_REQUEST['action'] == 'into_wishlist' ) ) && ! wp_is_post_revision( $post_id ) && !is_user_logged_in() ) {
 				// hook into only 'publish' events
 				if ( isset( $_REQUEST['publish'] ) || ( isset( $_REQUEST['action'] ) && $_REQUEST['action'] == 'into_wishlist' ) ) {
 					// anon_wishlist operations
@@ -413,14 +407,14 @@ if ( ! class_exists( 'WooCommerce_SaveForLater' ) ) {
 
 		function save_post_anon( $post_id, $post ) {
 			//verify post is not a revision & is a wishlist & user is not logged in
-			if ( $post->post_status != 'auto-draft' && ( WooCommerce_SaveForLater::POST_TYPE == $_REQUEST['post_type'] || ( isset( $_REQUEST['action'] ) && $_REQUEST['action'] == 'into_wishlist' ) ) && ! wp_is_post_revision( $post_id ) && !is_user_logged_in() ) {
+			if ( $post->post_status != 'auto-draft' && ( WC_SaveForLater::POST_TYPE == $_REQUEST['post_type'] || ( isset( $_REQUEST['action'] ) && $_REQUEST['action'] == 'into_wishlist' ) ) && ! wp_is_post_revision( $post_id ) && !is_user_logged_in() ) {
 				// hook into only 'publish' events
 				if ( isset( $_REQUEST['publish'] ) || ( isset( $_REQUEST['action'] ) && $_REQUEST['action'] == 'into_wishlist' ) ) {
 					// anon_post operations
 					$meta_key = 'woocommerce_wishlist_' . $post->post_name;
 					$meta_value = $post_id;
 					update_post_meta( $post_id, $meta_key, $meta_value ); // right now only one wishlist per user
-					WooCommerce_SaveForLater::set_cookie_anon( $post_id, $post );
+					WC_SaveForLater::set_cookie_anon( $post_id, $post );
 				}
 			}
 		}
@@ -436,7 +430,7 @@ if ( ! class_exists( 'WooCommerce_SaveForLater' ) ) {
 					// update the post and change the post_name/slug to the post_title
 					wp_update_post( array( 'ID' => $post_id, 'post_name' => self::generate_unique_slug() ) );
 					// anon_post operations
-					WooCommerce_SaveForLater::save_post_anon( $post_id, $post, true );
+					WC_SaveForLater::save_post_anon( $post_id, $post, true );
 				}
 
 				//re-hook this function
@@ -448,7 +442,7 @@ if ( ! class_exists( 'WooCommerce_SaveForLater' ) ) {
 			global $wpdb;
 			
 			$allowed_chars = apply_filters( 'woocommerce_wishlist_unique_slug_allowed_chars', '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ' );
-			$url_length = SFL_Wishlist_Settings::get_option( 'unique_url_length' );
+			$url_length = WC_Wishlist_Settings::get_option( 'unique_url_length' );
 			$unique_slug = '';
 			
 			for ( $i=0; $i<$url_length; $i++ ) {
@@ -474,32 +468,32 @@ if ( ! class_exists( 'WooCommerce_SaveForLater' ) ) {
 				$localize_script = apply_filters('woocommerce_wishlist_localize_script', array(
 					'ajaxurl' => admin_url( 'admin-ajax.php' ),
 					'user_status' => is_user_logged_in(),
-					'css_colors_enabled' => SFL_Wishlist_Settings::get_option('css_colors_enabled'),
-					'css_colors' => SFL_Wishlist_Settings::get_option('css_colors'),
+					'css_colors_enabled' => WC_Wishlist_Settings::get_option('css_colors_enabled'),
+					'css_colors' => WC_Wishlist_Settings::get_option('css_colors'),
 					'header_show' => sprintf( '%s %s',
 						__('Show'),
-						SFL_Wishlist_Settings::get_option('frontend_label') ),
+						WC_Wishlist_Settings::get_option('frontend_label') ),
 					'header_hide' => sprintf( '%s %s',
 						__('Hide'),
-						SFL_Wishlist_Settings::get_option('frontend_label') ),
+						WC_Wishlist_Settings::get_option('frontend_label') ),
 					'template' => array(
-						'product' => SFL_Wishlist_Template::dock_product_template(),
-						'not_found' => SFL_Wishlist_Template::not_found()
+						'product' => WC_Wishlist_Template::dock_product_template(),
+						'not_found' => WC_Wishlist_Template::not_found()
 						)
 					) );
 
 				// using localized js namespace
-				wp_localize_script( 'woocommerce_wishlist_script', 'woocommerce_wishlist_settings' , $localize_script);
+				wp_localize_script( 'woocommerce_wishlist_script', 'wc_wishlist_settings' , $localize_script);
 			}
 		}
 
 		function wp_footer(){
-			if( SFL_Wishlist_Settings::get_option('wp_footer_enabled') == 'yes' &&
-				( SFL_Wishlist_Settings::get_option( 'store_only' ) == 'no' || 
-				( SFL_Wishlist_Settings::get_option( 'store_only' ) == 'yes' && ( is_woocommerce() || is_cart() ) ) )
+			if( WC_Wishlist_Settings::get_option('wp_footer_enabled') == 'yes' &&
+				( WC_Wishlist_Settings::get_option( 'store_only' ) == 'no' || 
+				( WC_Wishlist_Settings::get_option( 'store_only' ) == 'yes' && ( is_WC() || is_cart() ) ) )
 			){
 				// display the wishlist dock
-				SFL_Wishlist_Template::dock();
+				WC_Wishlist_Template::dock();
 			}
 		}
 
@@ -523,7 +517,7 @@ if ( ! class_exists( 'WooCommerce_SaveForLater' ) ) {
 		 */
 		public static function prerequisites() {;
 			$pass = TRUE;
-			// $pass = $pass && defined( WOOCOMMERCE_VERSION ) && version_compare( WOOCOMMERCE_VERSION, self::MIN_WC_VERSION, '>=' );
+			// $pass = $pass && defined( WC_VERSION ) && version_compare( WC_VERSION, self::MIN_WC_VERSION, '>=' );
 			$pass = $pass && version_compare( phpversion(), self::MIN_PHP_VERSION, '>=' );
 			$pass = $pass && version_compare( get_bloginfo( 'version' ), self::MIN_WP_VERSION, '>=' );
 			return $pass;
@@ -540,7 +534,7 @@ if ( ! class_exists( 'WooCommerce_SaveForLater' ) ) {
 			echo '</p></div>';
 		}
 
-		public static function woocommerce_fail_notice() {
+		public static function fail_notice() {
 			echo '<div class="error"><p>';
 			_e( sprintf( '%s requires that WooCommerce be active in order to be succesfully activated.',
 					self::PLUGIN_NAME
