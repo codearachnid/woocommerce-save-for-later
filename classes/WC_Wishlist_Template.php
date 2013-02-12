@@ -29,7 +29,7 @@ if ( !class_exists( 'woocommerce_Wishlist_Template' ) ) {
 		}
 
 		public static function dock_product_template(){
-			$html = sprintf( '<a class="product" href="{0}">{1}<span class="add_to_cart" data-icon="i" data-id="{2}"></span><span class="remove" data-icon="x" data-id="{2}"></span><div class="quick_view">%s</div></a>',
+			$html = sprintf( '<a class="product" href="{0}">{1}<span class="add_to_cart" data-icon="i" data-product_id="{2}"></span><span class="remove" data-icon="x" data-product_id="{2}"></span><div class="quick_view">%s</div></a>',
 				__('Quick View', 'woocommerce_wishlist')
 				);
 			return apply_filters( 'woocommerce_wishlist_dock_product_template', $html );
