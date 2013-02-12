@@ -216,7 +216,7 @@ if ( ! class_exists( 'WC_Wishlist' ) ) {
 					'ID' => $product_id,
 					'title' => get_the_title( $product_id ),
 					'permalink' => get_permalink( $product_id ),
-					'thumbnail' => get_the_post_thumbnail( $product_id, get_wishlists'shop_thumbnail' )
+					'thumbnail' => get_the_post_thumbnail( $product_id, 'shop_thumbnail' )
 					);
 				return $product;
 			}

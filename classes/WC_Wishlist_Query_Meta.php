@@ -56,7 +56,7 @@ if( !class_exists('WC_Wishlist_Query_Meta')) {
 			return false;
 		}
 
-		function meta_add( $wishlist_post_id, $product_id, $meta_key, $meta_value, $unique = true ) {
+		function add( $wishlist_post_id, $product_id, $meta_key, $meta_value, $unique = true ) {
 
 			$wishlist_post_id = !empty( $wishlist_post_id->ID ) ? $wishlist_post_id->ID : absint( $wishlist_post_id );
 
@@ -79,13 +79,7 @@ if( !class_exists('WC_Wishlist_Query_Meta')) {
 			if ( null !== $check )
 				return $check;
 
-			// TODO: Look into setting uniques
-			if ( $unique && $wpdb->get_var( $wpdb->prepare(
-			 "SELECT COUNT(*) FROM $meta_db_table WHERE meta_key = %s AND $column = %d",
-			 $meta_key, $object_id ) ) )
-			 return false;
-
-			if ( self::meta_if_exists( $wishlist_post_id, $product_id, $meta_key, $meta_value, $unique ) ) {
+			if ( $unique && self::if_exists( $wishlist_post_id, $product_id, $meta_key ) ) {
 				return false;
 			}
 
@@ -124,7 +118,7 @@ if( !class_exists('WC_Wishlist_Query_Meta')) {
 			return $mid;
 		}
 
-		function meta_update( $wishlist_post_id, $product_id, $meta_key, $meta_value, $unique = true ) {
+		function update( $wishlist_post_id, $product_id, $meta_key, $meta_value, $unique = true ) {
 
 			$wishlist_post_id = absint( $wishlist_post_id );
 
@@ -172,7 +166,7 @@ if( !class_exists('WC_Wishlist_Query_Meta')) {
 			return $result;
 		}
 
-		function meta_delete( $wishlist_post_id, $product_id = null, $meta_key = null, $meta_value = null ) {
+		function delete( $wishlist_post_id, $product_id = null, $meta_key = null, $meta_value = null ) {
 
 			$wishlist_post_id = !empty( $wishlist_post_id->ID ) ? $wishlist_post_id->ID : absint( $wishlist_post_id );
 
