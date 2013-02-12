@@ -6,6 +6,14 @@ if ( !defined( 'ABSPATH' ) )
 if ( !class_exists( 'woocommerce_Wishlist_Template' ) ) {
 	class WC_Wishlist_Template {
 
+		public static function checkout_notice(){
+			$html = sprintf('<div id="wc_wishlist_notice">%s <span class="wc_wishlist_open_dock">%s</span></div>',
+				__('Would you like to add items from your wishlist today?', 'woocommerce_wishlist'),
+				__('Show Wishlist', 'woocommerce_wishlist')
+				);
+			echo apply_filters('woocommerce_wishlist_notice', $html );
+		}
+
 		public static function my_account_dashboard(){
 			$html = sprintf( '<div id="wc_wishlist_myaccount"><h2>%s</h2><p>%s</p><div class="products">',
 				__('Wishlist', 'woocommerce_wishlist'),

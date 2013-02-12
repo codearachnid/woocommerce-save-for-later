@@ -6,7 +6,7 @@
 @css_colors_product_icon: #ffffff;
 @css_colors_border: #bbbbbb;
 @css_colors_header_bg: #eeeeee;
-@css_colors_header_text: #e6db55;
+@css_colors_header_text: #777777;
 @css_colors_background: #666666;
 @css_colors_text: #777777;
 @opacity_overlay: .5;
@@ -60,6 +60,28 @@
 	&[data-icon]:before{
 		.icons;
 		color: @css_colors_product_icon;
+	}
+
+}
+div#wc_wishlist_notice{
+
+	display: none;
+	border:1px solid @css_colors_border;
+	background: @css_colors_header_bg;
+	color: @css_colors_header_text;
+	margin-bottom: 10px;
+	padding:6px 12px;
+	font-size: 10px;
+	font-style: italic;
+
+	> span {
+		font-style: normal;
+		font-weight: bold;
+
+		&:hover{
+			text-decoration: underline;
+			cursor: pointer;
+		}
 	}
 
 }
@@ -129,6 +151,7 @@ div#wc_wishlist_dock{
 		background: @css_colors_header_bg;
 		color: @css_colors_header_text;
 		display:none;
+		cursor: pointer;
 
 		&[data-icon]:before{
 			margin-right:4px;

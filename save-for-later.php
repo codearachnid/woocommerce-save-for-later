@@ -66,6 +66,7 @@ if ( ! class_exists( 'WC_Wishlist' ) ) {
 
 			// hook into WC for templating
 			add_action( 'woocommerce_ajax_added_to_cart', array( $this, 'wc_ajax_added_to_cart'));
+			add_action( 'woocommerce_before_cart_table', array( 'WC_Wishlist_Template', 'checkout_notice' ) );
 			add_action( 'woocommerce_before_my_account', array('WC_Wishlist_Template', 'my_account_dashboard') );
 			add_action( 'woocommerce_before_shop_loop_item_title', array( 'WC_Wishlist_Template', 'product_image_overlay' ), 20 );
 			add_action( 'woocommerce_after_shop_loop_item', array( 'WC_Wishlist_Template', 'product_button' ), 20 ); // link on product collections page
