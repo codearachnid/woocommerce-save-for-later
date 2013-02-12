@@ -87,12 +87,12 @@ if ( !class_exists( 'woocommerce_Wishlist_Template' ) ) {
 		}
 
 		public static function dock() {
-			include apply_filters( 'woocommerce_wishlist_template_dock_file', WC_SaveForLater::instance()->path . 'views/wishlist-dock.php' );
+			include apply_filters( 'woocommerce_wishlist_template_dock_file', WC_Wishlist::instance()->path . 'views/wishlist-dock.php' );
 		}
 
 		public static function register_form() {
 			global $WC;
-			include apply_filters( 'woocommerce_wishlist_template_register_form_file', WC_SaveForLater::instance()->path . 'views/register-form.php' );
+			include apply_filters( 'woocommerce_wishlist_template_register_form_file', WC_Wishlist::instance()->path . 'views/register-form.php' );
 		}
 
 		public static function not_found() {

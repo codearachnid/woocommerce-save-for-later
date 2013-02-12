@@ -48,15 +48,15 @@ require_once 'template-tags.php';
  */
 function WooCommerce_SaveForLater_Load() {
 	if ( in_array( 'woocommerce/woocommerce.php', apply_filters( 'woocommerce_wishlist_active_plugins', get_option( 'active_plugins' ) ) ) ) {
-		if ( apply_filters( 'woocommerce_wishlist_rating_pre_check', class_exists( 'WC_SaveForLater' ) && WC_SaveForLater::prerequisites() ) ) {
-			add_action( 'init', array( 'WC_SaveForLater', 'instance' ), -100, 0 );
+		if ( apply_filters( 'woocommerce_wishlist_rating_pre_check', class_exists( 'WC_Wishlist' ) && WC_Wishlist::prerequisites() ) ) {
+			add_action( 'init', array( 'WC_Wishlist', 'instance' ), -100, 0 );
 		} else {
 			// let the user know prerequisites weren't met: Wrong Versions
-			add_action( 'admin_head', array( 'WC_SaveForLater', 'min_version_fail_notice' ), 0, 0 );
+			add_action( 'admin_head', array( 'WC_Wishlist', 'min_version_fail_notice' ), 0, 0 );
 		}
 	} else {
 		// let the user know prerequisites weren't met: WooCommerce isn't available
-		add_action( 'admin_head', array( 'WC_SaveForLater', 'fail_notice' ), 0, 0 );
+		add_action( 'admin_head', array( 'WC_Wishlist', 'fail_notice' ), 0, 0 );
 	}
 }
 add_action( 'plugins_loaded', 'WooCommerce_SaveForLater_Load', 1 ); // high priority so that it's not too late for addon overrides

@@ -3,8 +3,8 @@
 if ( !defined( 'ABSPATH' ) )
 	die( '-1' );
 
-if ( ! class_exists( 'WC_SaveForLater' ) ) {
-	class WC_SaveForLater {
+if ( ! class_exists( 'WC_Wishlist' ) ) {
+	class WC_Wishlist {
 
 		protected static $instance;
 
@@ -216,7 +216,7 @@ if ( ! class_exists( 'WC_SaveForLater' ) ) {
 					'ID' => $product_id,
 					'title' => get_the_title( $product_id ),
 					'permalink' => get_permalink( $product_id ),
-					'thumbnail' => get_the_post_thumbnail( $product_id, 'shop_thumbnail' )
+					'thumbnail' => get_the_post_thumbnail( $product_id, get_wishlists'shop_thumbnail' )
 					);
 				return $product;
 			}
@@ -340,13 +340,13 @@ if ( ! class_exists( 'WC_SaveForLater' ) ) {
 				'post_category'  => array( 0 ),
 				'post_status'    => 'publish',
 				'post_title'     => $title,
-				'post_type'      => WC_SaveForLater::POST_TYPE
+				'post_type'      => WC_Wishlist::POST_TYPE
 			);
 
 			return wp_insert_post( $post );
 		}
 
-		function get_wishlists( $userid, $post_type = WC_SaveForLater::POST_TYPE, $limit = 1 ) {
+		function get_wishlists( $userid, $post_type = WC_Wishlist::POST_TYPE, $limit = 1 ) {
 			$wishlists_post_ids = array();
 
 			$wishlists = new WP_Query( array(
@@ -388,7 +388,7 @@ if ( ! class_exists( 'WC_SaveForLater' ) ) {
 
 		function set_cookie_anon( $post_id, $post, $remember = false ) {
 			//verify post is not a revision & is a wishlist & user is not logged in
-			if ( $post->post_status != 'auto-draft' && ( WC_SaveForLater::POST_TYPE == $_REQUEST['post_type'] || ( isset( $_REQUEST['action'] ) && $_REQUEST['action'] == 'into_wishlist' ) ) && ! wp_is_post_revision( $post_id ) && !is_user_logged_in() ) {
+			if ( $post->post_status != 'auto-draft' && ( WC_Wishlist::POST_TYPE == $_REQUEST['post_type'] || ( isset( $_REQUEST['action'] ) && $_REQUEST['action'] == 'into_wishlist' ) ) && ! wp_is_post_revision( $post_id ) && !is_user_logged_in() ) {
 				// hook into only 'publish' events
 				if ( isset( $_REQUEST['publish'] ) || ( isset( $_REQUEST['action'] ) && $_REQUEST['action'] == 'into_wishlist' ) ) {
 					// anon_wishlist operations
@@ -407,14 +407,14 @@ if ( ! class_exists( 'WC_SaveForLater' ) ) {
 
 		function save_post_anon( $post_id, $post ) {
 			//verify post is not a revision & is a wishlist & user is not logged in
-			if ( $post->post_status != 'auto-draft' && ( WC_SaveForLater::POST_TYPE == $_REQUEST['post_type'] || ( isset( $_REQUEST['action'] ) && $_REQUEST['action'] == 'into_wishlist' ) ) && ! wp_is_post_revision( $post_id ) && !is_user_logged_in() ) {
+			if ( $post->post_status != 'auto-draft' && ( WC_Wishlist::POST_TYPE == $_REQUEST['post_type'] || ( isset( $_REQUEST['action'] ) && $_REQUEST['action'] == 'into_wishlist' ) ) && ! wp_is_post_revision( $post_id ) && !is_user_logged_in() ) {
 				// hook into only 'publish' events
 				if ( isset( $_REQUEST['publish'] ) || ( isset( $_REQUEST['action'] ) && $_REQUEST['action'] == 'into_wishlist' ) ) {
 					// anon_post operations
 					$meta_key = 'woocommerce_wishlist_' . $post->post_name;
 					$meta_value = $post_id;
 					update_post_meta( $post_id, $meta_key, $meta_value ); // right now only one wishlist per user
-					WC_SaveForLater::set_cookie_anon( $post_id, $post );
+					WC_Wishlist::set_cookie_anon( $post_id, $post );
 				}
 			}
 		}
@@ -430,7 +430,7 @@ if ( ! class_exists( 'WC_SaveForLater' ) ) {
 					// update the post and change the post_name/slug to the post_title
 					wp_update_post( array( 'ID' => $post_id, 'post_name' => self::generate_unique_slug() ) );
 					// anon_post operations
-					WC_SaveForLater::save_post_anon( $post_id, $post, true );
+					WC_Wishlist::save_post_anon( $post_id, $post, true );
 				}
 
 				//re-hook this function

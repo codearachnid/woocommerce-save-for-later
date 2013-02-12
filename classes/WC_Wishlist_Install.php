@@ -23,7 +23,7 @@ if ( !class_exists( 'WC_Wishlist_Install' ) ) {
 			}
 			self::init_user_roles();
 			// Update version
-			update_option( 'woocommerce_wishlist_db_version', WC_SaveForLater::instance()->version );
+			update_option( 'woocommerce_wishlist_db_version', WC_Wishlist::instance()->version );
 			flush_rewrite_rules();
 		}
 

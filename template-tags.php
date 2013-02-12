@@ -13,12 +13,12 @@ function woocommerce_wishlist_get_active_wishlist(){
 }
 
 function woocommerce_wishlist_get_meta( $wishlist_id, $product_id = null, $meta_key = null ) {
-	return apply_filters('woocommerce_wishlist_get_meta', WC_Wishlist_Query::meta_get( $wishlist_id, $product_id, $meta_key ) );
+	return apply_filters('woocommerce_wishlist_get_meta', WC_Wishlist_Query_Meta::get( $wishlist_id, $product_id, $meta_key ) );
 }
 
 function woocommerce_wishlist_is_wishlist( $wishlist_id = null ){
 	$wishlist_id = !is_null($wishlist_id) ? $wishlist_id : get_the_ID();
-	$status = get_post_type( $wishlist_id ) == WC_SaveForLater::POST_TYPE ? true : false;
+	$status = get_post_type( $wishlist_id ) == WC_Wishlist::POST_TYPE ? true : false;
 	return apply_filters( 'woocommerce_wishlist_is_wishlist', $status);
 }
 
@@ -27,11 +27,11 @@ function woocommerce_wishlist_add_meta( $wishlist_post_id, $product_id, $meta_ke
 	// if ( $the_post = wp_is_post_revision( $wishlist_post_id ) )
 	// 	$wishlist_post_id = $the_post;
 
-	return apply_filters('woocommerce_wishlist_add_meta', WC_Wishlist_Query::meta_add( $wishlist_post_id, $product_id, $meta_key, $meta_value, $unique ) );
+	return apply_filters('woocommerce_wishlist_add_meta', WC_Wishlist_Query_Meta::add( $wishlist_post_id, $product_id, $meta_key, $meta_value, $unique ) );
 }
 
 function woocommerce_wishlist_delete_meta( $wishlist_post_id, $product_id = null, $meta_key = null, $meta_value = null ) {
-	return apply_filters('woocommerce_wishlist_delete_meta', WC_Wishlist_Query::meta_delete( $wishlist_post_id, $product_id, $meta_key, $meta_value ) );
+	return apply_filters('woocommerce_wishlist_delete_meta', WC_Wishlist_Query_Meta::delete( $wishlist_post_id, $product_id, $meta_key, $meta_value ) );
 }
 
 if ( !function_exists( 'woocommerce_wishlist_update_meta' ) ) {
@@ -40,7 +40,7 @@ if ( !function_exists( 'woocommerce_wishlist_update_meta' ) ) {
 		if ( $the_post = wp_is_post_revision( $wishlist_post_id ) )
 			$wishlist_post_id = $the_post;
 
-		return WC_Wishlist_Query::meta_update( $wishlist_post_id, $product_id, $meta_key, $meta_value, $unique );
+		return WC_Wishlist_Query_Meta::update( $wishlist_post_id, $product_id, $meta_key, $meta_value, $unique );
 	}
 }
 
@@ -50,17 +50,17 @@ if ( !function_exists( 'woocommerce_wishlist_delete_wishlist_meta' ) ) {
 		if ( $the_post = wp_is_post_revision( $wishlist_post_id ) )
 			$wishlist_post_id = $the_post;
 
-		return WC_Wishlist_Query::meta_delete( $wishlist_post_id, $product_id, $meta_key, $meta_value, $unique );
+		return WC_Wishlist_Query_Meta::delete( $wishlist_post_id, $product_id, $meta_key, $meta_value, $unique );
 	}
 }
 
 
 function woocommerce_wishlist_create_wishlist( ) {
-	return WC_SaveForLater::create_wishlist();
+	return WC_Wishlist::create_wishlist();
 }
 
 if ( !function_exists( 'woocommerce_wishlist_count_user_posts_by_type' ) ) {
-  function woocommerce_wishlist_count_user_posts_by_type($userid, $post_type = WC_SaveForLater::POST_TYPE) {
+  function woocommerce_wishlist_count_user_posts_by_type($userid, $post_type = WC_Wishlist::POST_TYPE) {
     global $wpdb;
     $where = get_posts_by_author_sql($post_type, TRUE, $userid);
     $count = $wpdb->get_var( "SELECT COUNT(*) FROM $wpdb->posts $where" );
@@ -69,7 +69,7 @@ if ( !function_exists( 'woocommerce_wishlist_count_user_posts_by_type' ) ) {
 }
 
 if ( !function_exists( 'woocommerce_wishlist_count_anon_posts_by_type' ) ) {
-  function woocommerce_wishlist_count_anon_posts_by_type($userid, $post_type = WC_SaveForLater::POST_TYPE) {
+  function woocommerce_wishlist_count_anon_posts_by_type($userid, $post_type = WC_Wishlist::POST_TYPE) {
     global $wpdb;
     $where = get_posts_by_author_sql($post_type, TRUE, $userid);
     $result = $wpdb->get_results( "SELECT ID FROM $wpdb->posts $where" );
@@ -94,21 +94,21 @@ if ( !function_exists( 'woocommerce_wishlist_count_anon_posts_by_type' ) ) {
 
 if ( !function_exists( 'woocommerce_wishlist_count_wishlists_by_anon' ) ) {
   function woocommerce_wishlist_count_wishlists_by_anon() {
-    $wishlist_post_ids =  WC_SaveForLater::get_wishlists_anon();
+    $wishlist_post_ids =  WC_Wishlist::get_wishlists_anon();
     return count( $wishlist_post_ids );
   }
 }
 
 if ( !function_exists( 'woocommerce_wishlist_get_wishlists_by_user' ) ) {
-  function woocommerce_wishlist_get_wishlists_by_user($userid, $post_type = WC_SaveForLater::POST_TYPE, $limit = 1) {
-    return WC_SaveForLater::get_wishlists($userid, $post_type, $limit);
+  function woocommerce_wishlist_get_wishlists_by_user($userid, $post_type = WC_Wishlist::POST_TYPE, $limit = 1) {
+    return WC_Wishlist::get_wishlists($userid, $post_type, $limit);
   }
 }
 
 if ( !function_exists( 'woocommerce_wishlist_get_wishlists_by_anon' ) ) {
-  function woocommerce_wishlist_get_wishlists_by_anon($userid, $post_type = WC_SaveForLater::POST_TYPE, $limit = 1) {
+  function woocommerce_wishlist_get_wishlists_by_anon($userid, $post_type = WC_Wishlist::POST_TYPE, $limit = 1) {
     $wishlist_post_ids = array();
-    $wishlist_post_ids_anon =  WC_SaveForLater::get_wishlists($userid, $post_type, $limit);
+    $wishlist_post_ids_anon =  WC_Wishlist::get_wishlists($userid, $post_type, $limit);
     $wishlists_anons = woocommerce_wishlist_get_wishlists_anon();
     
     foreach( $wishlist_post_ids_anon as $post_id ){
@@ -124,7 +124,7 @@ if ( !function_exists( 'woocommerce_wishlist_get_wishlists_by_anon' ) ) {
 if ( !function_exists( 'woocommerce_wishlist_get_wishlists_anon' ) ) {
   function woocommerce_wishlist_get_wishlists_anon() {
     $wishlist_post_ids = array();
-    $wishlist_post_ids =  WC_SaveForLater::get_wishlists_anon();
+    $wishlist_post_ids =  WC_Wishlist::get_wishlists_anon();
     
     return $wishlist_post_ids;
   }
