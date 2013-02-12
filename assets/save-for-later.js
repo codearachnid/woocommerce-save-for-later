@@ -87,7 +87,7 @@ jQuery( document ).ready( function ($){
 
 		var data = {
 			do_action: 'remove',
-			product_id: $(this).attr('data-product_id'), // wishlist params
+			product_id: $(this).parent().attr('data-id'), // wishlist params
 		};
 
 		$(this).parents('.product').fadeOut( 'slow' );
@@ -121,14 +121,14 @@ jQuery( document ).ready( function ($){
 		var _this = $(this);
 		var _parent = _this.parent();
 			
-		if (!_this.attr('data-product_id')) return true;
+		if (!_parent.attr('data-id')) return true;
 		
 		_parent.removeClass('added');
 		_parent.addClass('loading');
 		
 		var data = {
 			action: 		'woocommerce_add_to_cart',
-			product_id: 	_this.attr('data-product_id'),
+			product_id: 	_parent.attr('data-id'),
 			security: 		woocommerce_params.add_to_cart_nonce
 		};
 		
@@ -211,7 +211,13 @@ jQuery( document ).ready( function ($){
 			
 			// Trigger event so themes can refresh other areas
 			$('body').trigger('added_to_cart');
-	
+
+			// clean up localStorage
+			if( $.wc_wishlist.plugin.product_remove( _parent.attr('data-id') ) ) {
+				$.wc_wishlist.template();
+			}
+
+
 		});
 	});
 
@@ -301,10 +307,8 @@ jQuery( document ).ready( function ($){
 				// no user information == local store only
 				switch( data.do_action ) {
 					case 'remove':
-						product_id = _this.product_exists( data.product_id );
-						if( product_id !== false ){
-							storage.products.splice( product_id, 1 );
-							_this.save();
+						product_status = _this.product_remove( data.product_id );
+						if( product_status !== false ){
 							$(_this).trigger( 'woocommerce_wishlist_response' );
 						}
 						break;
@@ -361,13 +365,23 @@ jQuery( document ).ready( function ($){
 			});
 			return key;
 		},
+		product_remove: function ( product_id ){
+			product_id = this.product_exists( product_id );
+			if( product_id !== false ){
+				storage.products.splice( product_id, 1 );
+				this.save();
+				return true;
+			} else {
+				return false;
+			}
+		},
 		template: function(){
 			_this = this;
 			_this.get();
 			if( settings.user_status == storage.user_status ) {
 				wishlist = '';
 				jQuery.each( storage.products, function( i, product ){
-					wishlist += _this.format( settings.template.product, product.permalink, product.thumbnail, product.ID );
+					wishlist += _this.format( settings.template.product, product.permalink, product.ID, product.thumbnail );
 				});
 				wishlist = wishlist.length == 0 ? settings.template.not_found : wishlist;
 			} else {

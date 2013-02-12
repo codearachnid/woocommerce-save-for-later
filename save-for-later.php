@@ -65,10 +65,17 @@ if ( ! class_exists( 'WC_Wishlist' ) ) {
 			add_action( 'woocommerce_wishlist_dock_meta', array( 'WC_Wishlist_Template', 'dock_title'));
 
 			// hook into WC for templating
+			add_action( 'woocommerce_ajax_added_to_cart', array( $this, 'wc_ajax_added_to_cart'));
 			add_action( 'woocommerce_before_my_account', array('WC_Wishlist_Template', 'my_account_dashboard') );
 			add_action( 'woocommerce_before_shop_loop_item_title', array( 'WC_Wishlist_Template', 'product_image_overlay' ), 20 );
 			add_action( 'woocommerce_after_shop_loop_item', array( 'WC_Wishlist_Template', 'product_button' ), 20 ); // link on product collections page
 			add_action( 'woocommerce_after_add_to_cart_button', array( 'WC_Wishlist_Template', 'product_button' ), 20 ); // link on product single page
+		}
+
+		function wc_ajax_added_to_cart( $product_id ){
+			if( $wishlist = woocommerce_wishlist_get_active_wishlist() ) {
+				woocommerce_wishlist_delete_meta( $wishlist->ID, $product_id );
+			}
 		}
 
 		function shortcode_create_account(){
