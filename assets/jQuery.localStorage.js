@@ -54,21 +54,20 @@
 			window.localStorage.removeItem( key );
 			return true;
 		},
-		result: function( res ){
-			var ret;
+		result: function( data ){
 			try {
-				ret = JSON.parse( res );
-				if (ret == 'true'){
-					ret = true;
+				data = JSON.parse( data );
+				if (data == 'true'){
+					data = true;
 				}
-				if (ret == 'false'){
-					ret = false;
+				if (data == 'false'){
+					data = false;
 				}
-				if ( parseFloat( ret ) == ret && typeof ret != "object" ){
-					ret = parseFloat( ret );
+				if ( parseFloat( data ) == data && typeof data != "object" ){
+					data = parseFloat( data );
 				}
 			} catch( e ){}
-			return ret;
+			return data;
 		}
 	}
 
