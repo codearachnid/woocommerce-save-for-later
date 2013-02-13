@@ -404,6 +404,9 @@ jQuery( document ).ready( function ($){
 			if ( wc_wishlist_products.not( ":visible" ) && no_products === false ){
 				$('#wc_wishlist_notice').show();
 			} else if( no_products ) {
+				if ( wc_wishlist_products.is( ":visible" ) ){
+					wc_wishlist_header.trigger('click');
+				}
 				$('#wc_wishlist_notice').hide();
 			}
 		},

@@ -68,26 +68,35 @@ if ( !class_exists( 'woocommerce_Wishlist_Template' ) ) {
 
 			if ( is_user_logged_in() ) {
 				$myaccount_page_id = get_option( 'woocommerce_myaccount_page_id' );
-				$class = 'my_account';
-				$icon = '(';
-				$title = __( 'My Account', 'woocommerce_wishlist' );
+				$account_class = 'my_account';
+				$account_icon = '(';
+				$account_title = __( 'My Account', 'woocommerce_wishlist' );
 			} else {
 				$myaccount_page_id = ( get_option( 'woocommerce_enable_myaccount_registration' )=='yes' ) ? get_option( 'woocommerce_myaccount_page_id' ) : get_option( 'woocommerce_createaccount_page_id' );
-				$permalink = '#';
-				$class = 'my_account create';
-				$icon = 'o';
-				$title = __( 'Create an Account', 'woocommerce_wishlist' );
+				$account_permalink = '#';
+				$account_class = 'my_account create';
+				$account_icon = 'o';
+				$account_title = __( 'Create an Account', 'woocommerce_wishlist' );
 			}
 
-			$permalink = ( $myaccount_page_id ) ? get_permalink( $myaccount_page_id ) : '';
+			$account_permalink = ( $myaccount_page_id ) ? get_permalink( $myaccount_page_id ) : '';
 
-			$dock .= apply_filters( 'woocommerce_wishlist_template_dock_account_link',
-				!empty( $permalink ) ? sprintf( '<a href="%s" class="%s" data-icon="%s">%s</a>',
-					$permalink,
-					$class,
-					$icon,
-					$title
-				) : '', is_user_logged_in(), $permalink, $class, $icon, $title );
+			$dock .= apply_filters( 'woocommerce_wishlist_template_dock_account',
+				!empty( $account_permalink ) ? sprintf( '<a href="%s" class="%s" data-icon="%s">%s</a>',
+					$account_permalink,
+					$account_class,
+					$account_icon,
+					$account_title
+				) : '', is_user_logged_in(), $account_permalink, $account_class, $account_icon, $account_title );
+
+			$cart_permalink = get_permalink( woocommerce_get_page_id( 'cart' ) );
+			$cart_icon = 'i';
+			$cart_text = __( 'View Cart', 'woocommerce_wishlist' );
+			$dock .= apply_filters( 'woocommerce_wishlist_template_dock_cart', sprintf( '<a href="%s" class="view_cart" data-icon="%s">%s</a>',
+					$cart_permalink,
+					$cart_icon,
+					$cart_text
+				), $cart_permalink, $cart_icon, $cart_text );
 
 			echo apply_filters( 'woocommerce_wishlist_template_dock_title', $dock );
 		}
