@@ -57,7 +57,6 @@ if ( ! class_exists( 'WC_Wishlist' ) ) {
 
 			// core plugin items
 			add_action( 'init', array( $this, 'register_post_type' ) );
-			add_action( 'save_post', array( $this, 'save_post' ), 10, 2 );
 
 			// ajax handlers
 			add_action( 'wp_ajax_woocommerce_wishlist_get', array( $this, 'ajax_get' ) ); // authenticated users
@@ -348,23 +347,11 @@ if ( ! class_exists( 'WC_Wishlist' ) ) {
 			do_action( 'woocommerce_wishlist_register_post_type' );
 		}
 
-		function save_post( $post_id, $post ) {
-			//verify post is not a revision & is a wishlist
-			if ( ! wp_is_post_revision( $post_id ) && !empty( $_REQUEST['post_type'] ) && self::POST_TYPE == $_REQUEST['post_type'] && $post->post_status != 'auto-draft' ) {
-				// unhook this function so it doesn't loop infinitely
-				remove_action( 'save_post', array( $this, 'save_post' ) );
-
-				// hook into only 'publish' events
-				if ( isset( $_REQUEST['publish'] ) || ( isset( $_REQUEST['action'] ) && $_REQUEST['action'] == 'into_wishlist' ) ) {
-					// update the post and change the post_name/slug to the post_title
-					wp_update_post( array( 'ID' => $post_id, 'post_name' => WC_Wishlist_Query::unique_slug() ) );
-				}
-
-				//re-hook this function
-				add_action( 'save_post', array( $this, 'save_post' ) );
-			}
-		}
-
+		/**
+		 * Enqueue styles and scripts on the frontend
+		 * 
+		 * @return void
+		 */
 		function enqueue_assets() {
 			if ( !is_admin() ) {
 				wp_enqueue_style( 'woocommerce_wishlist_style', $this->url . 'assets/save-for-later.css', array( 'woocommerce_frontend_styles' ), 1.0, 'screen' );
@@ -399,13 +386,19 @@ if ( ! class_exists( 'WC_Wishlist' ) ) {
 		 * @return void
 		 */
 		function wp_footer() {
-			if ( WC_Wishlist_Settings::get_option( 'wp_footer_enabled' ) == 'yes' &&
+
+			$wp_footer_enabled = WC_Wishlist_Settings::get_option( 'wp_footer_enabled' );
+
+			if ( $wp_footer_enabled == 'yes' &&
 				( WC_Wishlist_Settings::get_option( 'store_only' ) == 'no' ||
-					( WC_Wishlist_Settings::get_option( 'store_only' ) == 'yes' && ( is_WC() || is_cart() ) ) )
+				( WC_Wishlist_Settings::get_option( 'store_only' ) == 'yes' && ( is_WC() || is_cart() ) ) )
 			) {
 				// display the wishlist dock
 				WC_Wishlist_Template::dock();
+
 			}
+
+			do_action( 'woocommerce_wishlist_wp_footer', $wp_footer_enabled )
 		}
 
 		/**
@@ -418,7 +411,7 @@ if ( ! class_exists( 'WC_Wishlist' ) ) {
 
 			$file = apply_filters( 'woocommerce_wishlist_lazy_loader', self::get_plugin_path() . 'classes/' . $class_name . '.php', $class_name );
 
-			if ( file_exists( $file ) )
+			if ( !empty( $file ) && file_exists( $file ) )
 				require_once $file;
 		}
 
