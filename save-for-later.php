@@ -398,7 +398,7 @@ if ( ! class_exists( 'WC_Wishlist' ) ) {
 
 			}
 
-			do_action( 'woocommerce_wishlist_wp_footer', $wp_footer_enabled )
+			do_action( 'woocommerce_wishlist_wp_footer', $wp_footer_enabled );
 		}
 
 		/**
