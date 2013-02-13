@@ -108,7 +108,7 @@ jQuery( document ).ready( function ($){
 
 		var data = {
 			do_action: 'add',
-			wishlist: this.dataset, // wishlist params
+			product_id: this.dataset.product_id, // product id
 			form: $(this).parent('form').serialize() // get form current data
 		};
 
@@ -291,7 +291,7 @@ jQuery( document ).ready( function ($){
 			$(_this).on( 'woocommerce_wishlist_response', _this.template );
 			// user logged in or force do_ajax
 			if( settings.user_status || data.do_ajax ) {
-				data.action = 'woocommerce_wishlist_' + data.do_action;
+				data.action = 'woocommerce_wishlist'; //_' + data.do_action;
 				jQuery.post( settings.ajaxurl, data ).done( function( response ) {
 					data = jQuery.parseJSON( response );
 					// @link https://github.com/codearachnid/wc-save-for-later/issues/1
@@ -319,10 +319,11 @@ jQuery( document ).ready( function ($){
 						}
 						break;
 					case 'add':
-						if( _this.product_exists( data.wishlist.product_id ) === false ) {
+						if( _this.product_exists( data.product_id ) === false ) {
 							jQuery.post( settings.ajaxurl, { 
-								action: 'woocommerce_wishlist_lookup', 
-								wishlist: data.wishlist 
+								action: 'woocommerce_wishlist', 
+								do_action: 'lookup',
+								product_id: data.product_id
 							}).done( function( response ) {
 								data = jQuery.parseJSON( response );
 								if( data.status == 'success' && data.product.ID != '' ){

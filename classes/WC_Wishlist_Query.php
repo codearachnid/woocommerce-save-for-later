@@ -6,17 +6,16 @@ if ( !class_exists( 'WC_Wishlist_Query' ) ) {
 		const META_TABLE = 'woocommerce_wishlistmeta';
 		const JOIN_KEY = 'woocommerce_wishlist_product_id';
 
-		function get_wishlist_by_user( $user_id = null, $args = array() ) {
+		function get_wishlist( $args = array() ){
 
-			$user_id = is_null( $user_id ) ? get_current_user_id() : $user_id;
+			$args = is_int( $args ) ? array( 'p' => $args ) : $args;
 
 			$defaults = array(
 				'query_type' => 'woocommerce_wishlist',
-				'query_action' => 'get_wishlist_by_user',
+				'query_action' => 'get_wishlist',
 				'post_type' => WC_Wishlist::POST_TYPE,
 				'posts_per_page' => 1,
-				'orderby' => 'menu_order',
-				'author' => $user_id
+				'orderby' => 'menu_order'
 			);
 
 			$args = wp_parse_args( $args, $defaults );
@@ -25,14 +24,26 @@ if ( !class_exists( 'WC_Wishlist_Query' ) ) {
 
 			$wishlist = array();
 			foreach ( $get_wishlist->posts as $post ) {
-				$wishlist[] = (object) apply_filters( 'woocommerce_wishlist_query_get_by_user_post', array(
+				$wishlist[] = (object) apply_filters( 'woocommerce_wishlist_query_get_wishlist_post', array(
 						'ID' => $post->ID,
 						'status' => $post->post_status,
 						'order' => $post->menu_order
-					), $post );
+					), $post, $args );
 			}
 
 			return $wishlist;
+		}
+
+		function get_wishlist_by_user( $user_id = null, $args = array() ) {
+
+			$defaults = array( 
+				'query_action' => 'get_wishlist_by_user',
+				'author' => is_null( $user_id ) ? get_current_user_id() : $user_id 
+				);
+
+			$args = wp_parse_args( $args, $defaults );
+
+			return self::get_wishlist( $args );
 		}
 
 		function create_wishlist() {
@@ -71,7 +82,31 @@ if ( !class_exists( 'WC_Wishlist_Query' ) ) {
 						ORDER BY meta_value DESC;",
 					$wishlist_post_id ) );
 
-			return apply_filters( 'woocommerce_wishlist_query_get_products', WC_Wishlist::get_wishlist_product( $product_ids ) );
+			return apply_filters( 'woocommerce_wishlist_query_get_products', self::get_product( $product_ids ) );
+		}
+
+		function get_product( $product_id = array() ) {
+			if ( is_array( $product_id ) ) {
+				$products = array();
+				$product_ids = $product_id;
+				foreach ( $product_ids as $id ) {
+					$products[] = self::get_product( $id );
+				}
+				return $products;
+			} else if( get_post_type( $product_id ) == 'product' ) {
+				$wc_product = new WC_Product( $product_id );
+				$product = (object) array(
+					'ID' => $product_id,
+					'title' => $wc_product->get_title(),
+					'permalink' => $wc_product->post->guid,
+					'price' => $wc_product->price,
+					'type' => $wc_product->product_type,
+					'thumbnail' => $wc_product->get_image()
+				);
+				return apply_filters( 'woocommerce_wishlist_get_product', $product, $wc_product );
+			} else {
+				return false;
+			}
 		}
 
 		function prepare_key_value( $key, $value = null, $type = '%s' ) {

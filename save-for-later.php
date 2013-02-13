@@ -24,7 +24,8 @@ if ( ! class_exists( 'WC_Wishlist' ) ) {
 			'status' => false,
 			'code' => null,
 			'wishlist' => array(),
-			'products' => array()
+			'products' => array(),
+			'product' => array()
 		);
 
 		public $path;
@@ -59,14 +60,8 @@ if ( ! class_exists( 'WC_Wishlist' ) ) {
 			add_action( 'init', array( $this, 'register_post_type' ) );
 
 			// ajax handlers
-			add_action( 'wp_ajax_woocommerce_wishlist_get', array( $this, 'ajax_get' ) ); // authenticated users
-			add_action( 'wp_ajax_nopriv_woocommerce_wishlist_get', array( $this, 'ajax_get' ) ); // authenticated users
-			add_action( 'wp_ajax_woocommerce_wishlist_add', array( $this, 'ajax_add' ) ); // authenticated users
-			add_action( 'wp_ajax_nopriv_woocommerce_wishlist_add', array( $this, 'ajax_add' ) ); // anon users
-			add_action( 'wp_ajax_woocommerce_wishlist_remove', array( $this, 'ajax_remove' ) ); // authenticated users
-			add_action( 'wp_ajax_nopriv_woocommerce_wishlist_remove', array( $this, 'ajax_remove' ) ); // anon users
-			add_action( 'wp_ajax_woocommerce_wishlist_lookup', array( $this, 'ajax_lookup' ) ); // authenticated users
-			add_action( 'wp_ajax_nopriv_woocommerce_wishlist_lookup', array( $this, 'ajax_lookup' ) ); // anon users
+			add_action( 'wp_ajax_woocommerce_wishlist', array( $this, 'ajax_handler' ) ); // authenticated users
+			add_action( 'wp_ajax_nopriv_woocommerce_wishlist', array( $this, 'ajax_handler' ) ); // authenticated users
 
 			// templating
 			add_shortcode( 'woocommerce_create_account', array( $this, 'shortcode_create_account' ) );
@@ -83,10 +78,17 @@ if ( ! class_exists( 'WC_Wishlist' ) ) {
 			add_action( 'woocommerce_after_add_to_cart_button', array( 'WC_Wishlist_Template', 'product_button' ), 20 ); // link on product single page
 		}
 
+		/**
+		 * Leverage 'woocommerce_ajax_added_to_cart' to remove the product from wishlist
+		 * 
+		 * @param  int $product_id
+		 * @return int $product_id
+		 */
 		function wc_ajax_added_to_cart( $product_id ) {
-			if ( $wishlist = woocommerce_wishlist_get_active_wishlist() ) {
-				woocommerce_wishlist_delete_meta( $wishlist->ID, $product_id );
+			if ( $wishlist_id = $this->get_wishlist_id() ) {
+				woocommerce_wishlist_delete_meta( $wishlist_id, $product_id );
 			}
+			return $product_id;
 		}
 
 		/**
@@ -98,14 +100,103 @@ if ( ! class_exists( 'WC_Wishlist' ) ) {
 			WC_Wishlist_Template::register_form();
 		}
 
-		function check_install() {
-			register_activation_hook( __FILE__, array( 'WC_Wishlist_Install', 'activate' ) );
-			register_activation_hook( __FILE__, array( 'WC_Wishlist_Install', 'flush_rewrite_rules' ) );
-			if ( is_admin() && get_option( 'woocommerce_wishlist_db_version' ) != $this->version )
-				add_action( 'init', array( 'WC_Wishlist_Install', 'install_or_upgrade' ), 1 );
+		function ajax_handler(){
+
+			$defaults = apply_filters( 'woocommerce_wishlist_ajax_response_default', array(
+				'msg' => null,
+				'status' => false,
+				'code' => null,
+				'wishlist' => array(),
+				'products' => array(),
+				'product' =>  (object) array(
+					'ID' => null,
+					'title' => null,
+					'permalink' => null,
+					'thumbnail' => null
+				)));
+
+			$allowed_request = apply_filters( 'woocommerce_wishlist_ajax_allowed_request', array(
+				'wishlist_id' => null,
+				'product_id' => null,
+				'do_action' => null
+			));
+
+			$request = wp_parse_args( $_REQUEST, $allowed_request );
+
+			switch( $request['do_action'] ){
+				case 'lookup':
+					if ( ! $product_id = absint( $request['product_id'] ) ) {
+						$response = array(
+							'status' => 'error',
+							'code' => 501,
+							'msg' => __( 'You must supply a valid product ID to lookup.', 'woocommerce_wishlist' )
+							);
+					} else if ( ! $product = WC_Wishlist_Query::get_product( $product_id ) ) {
+						$response = array(
+							'status' => 'error',
+							'code' => 404,
+							'msg' => __( 'Product information could not be found by the ID you supplied.', 'woocommerce_wishlist' )
+							);
+					} else {
+						$response = array(
+							'status'=>'success',
+							'code' => 100,
+							'product' => $product
+							);
+					}
+					break;
+				case 'add':
+					$wishlist_id = $this->get_wishlist_id();
+					if ( !empty( $request['product_id'] ) && $this->add_product_to_wishlist( $request['product_id'], null, $request['form'] ) ) {
+
+						$response = $this->ajax_get_products();
+
+					} else {
+						$response = array(
+							'status'=>'error',
+							'code' => 501,
+							'msg' => __( 'The request to add the product to your wishlist failed.' )
+							);
+					}
+					break;
+				case 'get':
+					$response = $this->ajax_get_products();
+					break;
+				case 'remove':
+					$wishlist_id = $this->get_wishlist_id();
+					if ( !empty( $request['product_id'] ) && !empty($wishlist_id) && woocommerce_wishlist_delete_meta( $wishlist_id, $request['product_id'] ) ) {
+
+						$response = $this->ajax_get_products();
+
+					} else {
+						$response = array(
+							'status'=>'error',
+							'code' => 501,
+							'msg' => __( 'The request to remove the product from the wishlist failed.' )
+						);
+					}
+					break;
+				default:
+					$response = array(
+						'status'=>'error',
+						'code' => 503,
+						'msg' => __( 'The AJAX request is improperly formatted.', 'woocommerce_wishlist' )
+					);
+					break;
+			}
+
+			// for debugging pruposes
+			if( defined('WP_DEBUG') && WP_DEBUG )
+				$response['request'] = $request;
+
+			$response = apply_filters( 'woocommerce_wishlist_ajax_response', wp_parse_args( $response, $defaults ) );
+
+			echo json_encode( $response );
+
+			die();
 		}
 
-		function ajax_get() {
+		function ajax_get_products() {
 
 			$wishlist = woocommerce_wishlist_get_active_wishlist();
 
@@ -115,152 +206,21 @@ if ( ! class_exists( 'WC_Wishlist' ) ) {
 				'wishlist' => $wishlist,
 				'products' => WC_Wishlist_Query::get_products( $wishlist->ID )
 			);
-
-			$response = wp_parse_args( $response, $this->default_ajax_response );
-			echo json_encode( $response );
-
-			die();
+		
+			return $response;
 		}
 
-		function ajax_remove() {
-
-			// will return anon wishlists if userid isn't known
-			// if the wishlist is provided and not a legit wishlist
-			// then we try to get the active wishlist
-			$wishlist_id = ! empty( $wishlist['wishlist_id'] ) && woocommerce_wishlist_is_wishlist( $wishlist_id ) ? $wishlist['wishlist_id'] : woocommerce_wishlist_get_active_wishlist();
-
-			// forward request to meta manager with the data and wait for its response
-			if ( !empty( $_REQUEST ) && !empty( $wishlist_id ) ) {
-				extract( $_REQUEST );
-
-				if ( woocommerce_wishlist_delete_meta( $wishlist_id, $product_id ) ) {
-
-					$this->ajax_get();
-
-				} else {
-					$response = array(
-						'status'=>'error',
-						'msg' => __( 'The request to remove the product from the wishlist failed.' )
-					);
-				}
-
-			} else {
-				$response = array(
-					'status'=>'error',
-					'msg' => __( 'The AJAX request is improperly formatted.' )
-				);
-			}
-
-			$response = wp_parse_args( $response, $this->default_ajax_response );
-			echo json_encode( $response );
-
-			die();
-		}
-
-		// callback for wishlist ajax
-		function ajax_add() {
-
-			if ( !empty( $_REQUEST ) ) {
-				extract( $_REQUEST );
-
-				if ( !empty( $form ) )
-					parse_str( $form, $form );
-
-				if ( !empty( $wishlist ) && $this->add_to_wishlist( $wishlist, $form ) ) {
-
-					$this->ajax_get();
-
-				} else {
-					$response = array(
-						'status'=>'error',
-						'msg' => __( 'The request to add the product to your wishlist failed.' )
-					);
-				}
-
-			} else {
-				$response = array(
-					'status'=>'error',
-					'msg' => __( 'The AJAX request is improperly formatted.' )
-				);
-			}
-
-			$response = wp_parse_args( $response, $this->default_ajax_response );
-			echo json_encode( $response );
-
-			die();
-		}
-
-		function ajax_lookup() {
-
-			$response = array(
-				'status' => 'success',
-				'code' => '100',
-				'product' => (object) array(
-					'ID' => null,
-					'title' => null,
-					'permalink' => null,
-					'thumbnail' => null
-				)
-			);
-
-			if ( !empty( $_REQUEST ) ) {
-				extract( $_REQUEST );
-
-				if ( ! $product_id = absint( $wishlist['product_id'] ) ) {
-					$response['status'] = 'error';
-					$response['msg'] = __( 'You must supply a valid product ID to lookup.' );
-				} else {
-					$response['product'] = $this->get_wishlist_product( $product_id );
-				}
-
-			} else {
-				$response = array(
-					'status'=>'error',
-					'msg' => __( 'The AJAX request is improperly formatted.' )
-				);
-			}
-
-			$response = wp_parse_args( $response, $this->default_ajax_response );
-			echo json_encode( $response );
-
-			die();
-		}
-
-		function get_wishlist_product( $product_id = array() ) {
-			if ( is_array( $product_id ) ) {
-				$products = array();
-				$product_ids = $product_id;
-				foreach ( $product_ids as $id ) {
-					$products[] = self::get_wishlist_product( $id );
-				}
-				return $products;
-			} else {
-				$product = (object) array(
-					'ID' => $product_id,
-					'title' => get_the_title( $product_id ),
-					'permalink' => get_permalink( $product_id ),
-					'thumbnail' => get_the_post_thumbnail( $product_id, 'shop_thumbnail' )
-				);
-				return $product;
-			}
-		}
-
-
-		function add_to_wishlist( $wishlist, $attributes = array() ) {
+		function add_product_to_wishlist( $product_id, $wishlist_id = null, $attributes = array() ) {
 
 			$defaults = array(
 				'quantity' => 1,
 				'added' => time()
 			);
 
-			if ( ! $product_id = absint( $wishlist['product_id'] ) )
+			if ( ! $product_id = absint( $product_id ) )
 				return false;
 
-			// will return anon wishlists if userid isn't known
-			// if the wishlist is provided and not a legit wishlist
-			// then we try to get the active wishlist
-			$wishlist_id = ! empty( $wishlist['wishlist_id'] ) && woocommerce_wishlist_is_wishlist( $wishlist['wishlist_id'] ) ? $wishlist['wishlist_id'] : woocommerce_wishlist_get_active_wishlist();
-			$wishlist_id = is_object( $wishlist_id ) && !empty( $wishlist_id->ID ) ? $wishlist_id->ID : $wishlist_id;
+			$wishlist_id = $this->get_wishlist_id( $wishlist_id );
 
 			// if no wishlists are returned then let's protect
 			if ( empty( $wishlist_id ) ) {
@@ -277,6 +237,24 @@ if ( ! class_exists( 'WC_Wishlist' ) ) {
 			}
 
 			return true;
+		}
+
+		/**
+		 * Attempt to find the right wishlist ID if unknown
+		 * 
+		 * will return anon wishlists if userid isn't known
+		 * if the wishlist is provided and not a legit wishlist
+		 * then we try to get the active wishlist
+		 * @param  int $wishlist_id
+		 * @return int $wishlist_id
+		 */
+		function get_wishlist_id( $wishlist_id = null ){
+
+			$wishlist_id = ! empty( $wishlist_id ) && woocommerce_wishlist_is_wishlist( $wishlist_id ) ? $wishlist_id : woocommerce_wishlist_get_active_wishlist();
+			$wishlist_id = is_object( $wishlist_id ) && !empty( $wishlist_id->ID ) ? $wishlist_id->ID : $wishlist_id;
+
+			return apply_filters( 'woocommerce_wishlist_get_wishlist_id', $wishlist_id );
+
 		}
 
 		/**
@@ -422,6 +400,17 @@ if ( ! class_exists( 'WC_Wishlist' ) ) {
 		 */
 		public static function get_plugin_path() {
 			return trailingslashit( dirname( __FILE__ ) );
+		}
+
+		/**
+		 * Ensure the plugin has everything it needs to run properly
+		 * @return void
+		 */
+		public function check_install() {
+			register_activation_hook( __FILE__, array( 'WC_Wishlist_Install', 'activate' ) );
+			register_activation_hook( __FILE__, array( 'WC_Wishlist_Install', 'flush_rewrite_rules' ) );
+			if ( is_admin() && get_option( 'woocommerce_wishlist_db_version' ) != $this->version )
+				add_action( 'init', array( 'WC_Wishlist_Install', 'install_or_upgrade' ), 1 );
 		}
 
 		/**
