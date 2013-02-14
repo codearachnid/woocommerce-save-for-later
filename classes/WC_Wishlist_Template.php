@@ -6,6 +6,18 @@ if ( !defined( 'ABSPATH' ) )
 if ( !class_exists( 'woocommerce_Wishlist_Template' ) ) {
 	class WC_Wishlist_Template {
 
+		public static function cart_item_save_link( $html, $cart_item_key ){
+			global $woocommerce;
+			$product_id = $woocommerce->cart->cart_contents[ $cart_item_key ]['product_id'];
+			$html .=  sprintf('<a href="%s" class="save_for_later in_cart" data-product_id="%s" data-product_key="%s">%s</a>',
+				add_query_arg( 'save_for_later', $product_id, $woocommerce->cart->get_remove_url( $cart_item_key ) ),
+				$product_id,
+				$cart_item_key,
+				__('Save For Later','woocommerce_wishlist')
+				);
+			return apply_filters( 'woocommerce_wishlist_cart_item_save_link', $html );
+		}
+
 		public static function checkout_notice() {
 			$html = sprintf( '<div id="wc_wishlist_notice">%s <span class="wc_wishlist_open_dock">%s</span></div>',
 				__( 'Would you like to add items from your wishlist today?', 'woocommerce_wishlist' ),

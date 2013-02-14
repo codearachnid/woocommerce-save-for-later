@@ -70,6 +70,7 @@ if ( ! class_exists( 'WC_Wishlist' ) ) {
 			add_action( 'woocommerce_wishlist_dock_meta', array( 'WC_Wishlist_Template', 'dock_title' ) );
 
 			// hook into WC for templating
+			add_filter( 'woocommerce_cart_item_remove_link', array('WC_Wishlist_Template', 'cart_item_save_link'), 10, 2 );
 			add_action( 'woocommerce_ajax_added_to_cart', array( $this, 'wc_ajax_added_to_cart' ) );
 			add_action( 'woocommerce_before_cart_table', array( 'WC_Wishlist_Template', 'checkout_notice' ) );
 			add_action( 'woocommerce_before_my_account', array( 'WC_Wishlist_Template', 'my_account_dashboard' ) );
@@ -77,6 +78,36 @@ if ( ! class_exists( 'WC_Wishlist' ) ) {
 			add_action( 'woocommerce_after_shop_loop_item', array( 'WC_Wishlist_Template', 'product_button' ), 20 ); // link on product collections page
 			add_action( 'woocommerce_after_add_to_cart_button', array( 'WC_Wishlist_Template', 'product_button' ), 20 ); // link on product single page
 		}
+
+		/**
+		 * Sniff out request to move items from cart to wishlist
+		 * 
+		 * @return mixed $status or $response
+		 */
+		// function cart_item_listener(){
+		// 	global $woocommerce;
+
+		// 	$status = false;
+
+		// 	if ( !empty($_GET['save_for_later']) && $product_id = absint( $_GET['save_for_later'] ) && $product_id &&
+		// 		$woocommerce->verify_nonce('cart', '_GET') && 
+		// 		is_user_logged_in() && 
+		// 		$this->add_product_to_wishlist( $product_id, null, array() ) ){
+
+		// 		// woocommerce_update_cart_action();
+
+		// 	}
+
+		//  	// if( is_ajax() ) {
+
+		//  	// 	$response = apply_filters( 'woocommerce_wishlist_ajax_cart_item_listener', wp_parse_args( $this->ajax_get_products(), $this->ajax_response_default() ) );
+		// 		// echo json_encode( $response );
+		// 		// die();
+
+		//  	// } else {
+		//  	// 	return $status;
+		//  	// }
+		// }
 
 		/**
 		 * Leverage 'woocommerce_ajax_added_to_cart' to remove the product from wishlist
@@ -100,8 +131,7 @@ if ( ! class_exists( 'WC_Wishlist' ) ) {
 			WC_Wishlist_Template::register_form();
 		}
 
-		function ajax_handler(){
-
+		function ajax_response_default(){
 			$defaults = apply_filters( 'woocommerce_wishlist_ajax_response_default', array(
 				'msg' => null,
 				'status' => false,
@@ -114,6 +144,12 @@ if ( ! class_exists( 'WC_Wishlist' ) ) {
 					'permalink' => null,
 					'thumbnail' => null
 				)));
+			return $defaults;
+		}
+
+		function ajax_handler(){
+
+			$defaults = $this->ajax_response_default();
 
 			$allowed_request = apply_filters( 'woocommerce_wishlist_ajax_allowed_request', array(
 				'wishlist_id' => null,
@@ -146,9 +182,12 @@ if ( ! class_exists( 'WC_Wishlist' ) ) {
 					}
 					break;
 				case 'add':
+					global $woocommerce;
 					$wishlist_id = $this->get_wishlist_id();
 					if ( !empty( $request['product_id'] ) && $this->add_product_to_wishlist( $request['product_id'], null, $request['form'] ) ) {
 
+						// Sniff out request to move items from cart to wishlist
+						$woocommerce->cart->set_quantity( $request['remove_item'], 0 );
 						$response = $this->ajax_get_products();
 
 					} else {

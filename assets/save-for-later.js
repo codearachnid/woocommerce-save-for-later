@@ -112,7 +112,12 @@ jQuery( document ).ready( function ($){
 			form: $(this).parent('form').serialize() // get form current data
 		};
 
-		$.wc_wishlist( data, true );
+		if( $(this).hasClass('in_cart') ) {
+			data.remove_item = this.dataset.product_key;
+			data.clean_cart = true;
+		}
+
+		$.wc_wishlist( data, true );	
 
 	});
 
@@ -287,24 +292,25 @@ jQuery( document ).ready( function ($){
 			_this = this;
 			_this.get();
 			is_open = typeof is_open !== 'undefined' ? is_open : false;
-			data = jQuery.extend( { do_ajax: false, do_action: 'get' }, data );
+			data = jQuery.extend( { do_ajax: false, do_action: 'get', clean_cart: false }, data );
 			$(_this).on( 'woocommerce_wishlist_response', _this.template );
 			// user logged in or force do_ajax
 			if( settings.user_status || data.do_ajax ) {
 				data.action = 'woocommerce_wishlist'; //_' + data.do_action;
+
 				jQuery.post( settings.ajaxurl, data ).done( function( response ) {
-					data = jQuery.parseJSON( response );
+					response = jQuery.parseJSON( response );
 					// @link https://github.com/codearachnid/wc-save-for-later/issues/1
 					// if( _this.exists( storage.do_merge) ) {
 					// 	storage.products = jQuery.extend( storage.products, data.products );
 					// 	storage.wishlist = jQuery.extend( storage.wishlist, data.wishlist );
 					// 	storage.user_status = jQuery.extend( storage.user_status, settings.user_status );
 					// } else {
-						storage = { products: data.products, wishlist: data.wishlist, user_status: settings.user_status };
+						storage = { products: response.products, wishlist: response.wishlist, user_status: settings.user_status };
 					// }
 					// _this.remove( 'do_merge' );
 					_this.save();
-					if (is_open == true && data.status == 'success' && ! wc_wishlist_products.is( ":visible" ) ){
+					if (is_open == true && response.status == 'success' && ! wc_wishlist_products.is( ":visible" ) ){
 						wc_wishlist_header.trigger('click');
 					}
 					$(_this).trigger('woocommerce_wishlist_response');
